@@ -24,8 +24,8 @@ export default function Footer() {
         <div className="mt-12 flex flex-col gap-12 md:flex-row md:items-start md:justify-between">
           <div className="flex flex-col gap-6">
             <p className="max-w-md text-base leading-relaxed text-white/50">
-              Booking a show, planning an album cover, or need a full tour documented? I'm available
-              worldwide — just reach out.
+              Réserver un spectacle, planifier une pochette d’album ou avoir besoin de documenter une visite complète ? Je suis disponible
+              - il suffit de me contacter.
             </p>
             <ContactButton label="Book a shoot" accent="green" />
           </div>
