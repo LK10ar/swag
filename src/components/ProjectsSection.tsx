@@ -8,6 +8,7 @@ import type { Album } from '@/lib/api';
 import { ACCENT_MAP, PLACEHOLDER_IMAGE } from '@/lib/photos';
 
 const pad = (n: number) => String(n).padStart(2, '0');
+const label = (a: Album) => [a.year, a.location].filter(Boolean).join(' · ');
 
 // 3 images pour la grille de la carte : couverture + premières photos, complétées par le placeholder
 function cardImages(album: Album): string[] {
@@ -37,18 +38,18 @@ function ProjectCard({
   const [img1, img2, img3] = cardImages(album);
 
   return (
-    <div className="sticky top-24 flex h-[85vh] items-start justify-center md:top-32">
+    <div className="sticky top-24 flex items-start justify-center md:top-32" style={{ minHeight: '85vh' }}>
       <motion.div
-        style={{ scale, top: `${index * 28}px`, transformOrigin: 'top' }}
+        style={{ scale, marginTop: `${index * 28}px`, transformOrigin: 'top' }}
         onClick={onOpen}
-        className="absolute flex w-full max-w-[1760px] cursor-pointer flex-col gap-6 rounded-[40px] border-2 border-[#D7E2EA] bg-[#0C0C0C] p-4 sm:gap-8 sm:rounded-[50px] sm:p-6 md:gap-10 md:rounded-[60px] md:p-8"
+        className="relative flex w-full max-w-[1760px] cursor-pointer flex-col gap-6 rounded-[40px] border-2 border-[#D7E2EA] bg-[#0C0C0C] p-4 sm:gap-8 sm:rounded-[50px] sm:p-6 md:gap-10 md:rounded-[60px] md:p-8"
       >
         {/* Ligne du haut */}
         <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
           <div className="flex items-center gap-6 sm:gap-8 md:gap-10">
             <span
               className="font-black uppercase leading-none text-[#D7E2EA]"
-              style={{ fontSize: 'clamp(3rem, 10vw, 140px)' }}
+              style={{ fontSize: 'clamp(3rem, min(10vw, 14vh), 140px)' }}
             >
               {pad(index + 1)}
             </span>
@@ -57,7 +58,7 @@ function ProjectCard({
                 className="font-medium uppercase"
                 style={{ fontSize: 'clamp(1rem, 2.2vw, 2.1rem)', color: c.raw }}
               >
-                {album.year} · {album.location}
+                {label(album)}
               </span>
               <span
                 className="font-light tracking-wide text-[#D7E2EA]"
@@ -78,14 +79,14 @@ function ProjectCard({
               alt={`${album.title} — aperçu 1`}
               loading="lazy"
               className="w-full rounded-[40px] object-cover sm:rounded-[50px] md:rounded-[60px]"
-              style={{ height: 'clamp(130px, 16vw, 230px)' }}
+              style={{ height: 'clamp(130px, min(16vw, 17vh), 230px)' }}
             />
             <img
               src={img2}
               alt={`${album.title} — aperçu 2`}
               loading="lazy"
               className="w-full rounded-[30px] object-cover sm:rounded-[40px] md:rounded-[60px]"
-              style={{ height: 'clamp(160px, 22vw, 340px)' }}
+              style={{ height: 'clamp(160px, min(22vw, 25vh), 340px)' }}
             />
           </div>
           <img

@@ -54,7 +54,7 @@ export default function AlbumViewer({ album, number, onClose }: Props) {
                 {album.title}
               </h3>
               <p className="text-sm font-medium uppercase" style={{ color: c.raw }}>
-                {album.year} · {album.location}
+                {[album.year, album.location].filter(Boolean).join(' · ')}
               </p>
             </div>
           </div>
