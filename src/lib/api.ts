@@ -83,3 +83,27 @@ export async function uploadFile(file: File): Promise<{ url: string; type: Photo
   form.append('file', file);
   return request<{ url: string; type: PhotoType }>('/api/upload', { method: 'POST', body: form }, true);
 }
+
+// --- Réglages du site ---
+export type Stat = { value: string; label: string; color: AccentColor };
+
+export type SiteSettings = {
+  hero: { base: string; reveal: string };
+  about: { image: string; heading: string; paragraph: string; touring: string; stats: Stat[] };
+  marquee: { label: string; topRow: string[]; bottomRow: string[] };
+  contact: { instagram: string; email: string; intro: string };
+};
+
+export const fetchSettings = () => request<Partial<SiteSettings>>('/api/settings');
+export const saveSettings = (settings: SiteSettings) =>
+  request<SiteSettings>('/api/settings', json('PUT', settings), true);
+
+// --- Contact ---
+export const sendContact = (data: { name: string; email: string; message: string; website?: string }) =>
+  request<{ ok: true }>('/api/contact', json('POST', data));
+
+export type Message = { _id: string; name: string; email: string; message: string; read: boolean; createdAt: string };
+export const fetchMessages = () => request<Message[]>('/api/messages', {}, true);
+export const setMessageRead = (id: string, read: boolean) =>
+  request<Message>(`/api/messages/${id}`, json('PUT', { read }), true);
+export const deleteMessage = (id: string) => request<{ ok: true }>(`/api/messages/${id}`, { method: 'DELETE' }, true);

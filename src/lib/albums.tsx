@@ -17,12 +17,23 @@ const DEMO_ALBUMS: Album[] = PHOTOS.projects.map((p, i) => ({
 }));
 
 type Status = 'loading' | 'ready' | 'offline';
+
+const CACHE_KEY = 'swag_albums_v1';
+function readCache(): Album[] {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    const list = raw ? (JSON.parse(raw) as Album[]) : null;
+    return Array.isArray(list) && list.length > 0 ? list : DEMO_ALBUMS;
+  } catch {
+    return DEMO_ALBUMS;
+  }
+}
 type Ctx = { albums: Album[]; status: Status; reload: () => void };
 
 const AlbumsContext = createContext<Ctx>({ albums: DEMO_ALBUMS, status: 'loading', reload: () => {} });
 
 export function AlbumsProvider({ children }: { children: ReactNode }) {
-  const [albums, setAlbums] = useState<Album[]>(DEMO_ALBUMS);
+  const [albums, setAlbums] = useState<Album[]>(readCache);
   const [status, setStatus] = useState<Status>('loading');
 
   const reload = useCallback(() => {
@@ -30,6 +41,11 @@ export function AlbumsProvider({ children }: { children: ReactNode }) {
       .then((data) => {
         setAlbums(data);
         setStatus('ready');
+        try {
+          localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+        } catch {
+          /* stockage indisponible : pas grave */
+        }
       })
       .catch(() => setStatus('offline'));
   }, []);
