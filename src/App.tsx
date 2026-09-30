@@ -8,6 +8,7 @@ import ServicesSection from './components/ServicesSection';
 import ProjectsSection from './components/ProjectsSection';
 import GallerySection from './components/GallerySection';
 import GalleryPage from './components/GalleryPage';
+import LegalPage from './components/LegalPage';
 import ContactSection from './components/ContactSection';
 import Footer from './components/Footer';
 import ScrollTopButton from './components/ScrollTopButton';
@@ -15,12 +16,13 @@ import Admin from './components/Admin';
 import { AlbumsProvider } from './lib/albums';
 import { SettingsProvider } from './lib/settings';
 
-type Route = 'home' | 'admin' | 'gallery';
+type Route = 'home' | 'admin' | 'gallery' | 'legal';
 
 function getRoute(): Route {
   const h = window.location.hash;
   if (h.startsWith('#/admin')) return 'admin';
   if (h.startsWith('#/gallery')) return 'gallery';
+  if (h.startsWith('#/legal')) return 'legal';
   return 'home';
 }
 
@@ -50,10 +52,10 @@ export default function App() {
   return (
     <SettingsProvider>
     <AlbumsProvider>
-      {route === 'gallery' ? (
+      {route === 'gallery' || route === 'legal' ? (
         <>
           <Navbar />
-          <GalleryPage />
+          {route === 'gallery' ? <GalleryPage /> : <LegalPage />}
           <Footer />
         </>
       ) : (
