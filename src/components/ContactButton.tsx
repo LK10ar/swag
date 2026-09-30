@@ -9,7 +9,7 @@ type Props = {
 };
 
 export default function ContactButton({
-  label = 'Book a shoot',
+  label = 'Contact',
   href = '#contact',
   accent = 'green',
 }: Props) {

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Camera, X } from 'lucide-react';
+import { useSettings } from '@/lib/settings';
 
 const NAV_LINKS = [
   { label: 'Work', href: '#work' },
@@ -12,6 +13,8 @@ const NAV_LINKS = [
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
+  const { settings } = useSettings();
+  const { email, instagram } = settings.contact;
 
   return (
     <>
@@ -70,16 +73,21 @@ export default function Navbar() {
               ))}
             </nav>
             <div className="mt-8 flex flex-col gap-3 border-t border-white/10 pt-6">
-              <a href="mailto:shoot@voltphoto.studio" className="text-sm text-white/60 transition-colors hover:text-white">
-                shoot@voltphoto.studio
-              </a>
-              <div className="flex gap-5">
-                {['Instagram', 'Behance', '500px'].map((s) => (
-                  <a key={s} href="#" className="text-xs text-white/40 underline underline-offset-2 transition-colors hover:text-neon-pink">
-                    {s}
-                  </a>
-                ))}
-              </div>
+              {email && (
+                <a href={`mailto:${email}`} className="text-sm text-white/60 transition-colors hover:text-white">
+                  {email}
+                </a>
+              )}
+              {instagram && (
+                <a
+                  href={instagram}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-white/40 underline underline-offset-2 transition-colors hover:text-neon-pink"
+                >
+                  Instagram
+                </a>
+              )}
             </div>
           </motion.div>
         )}

@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { X } from 'lucide-react';
 import Lightbox from './Lightbox';
 import MediaThumb from './MediaThumb';
+import Masonry from './Masonry';
 import type { Album } from '@/lib/api';
 import { ACCENT_MAP } from '@/lib/photos';
 import { LIGHT } from '@/lib/helpers';
@@ -75,8 +76,9 @@ export default function AlbumViewer({ album, number, onClose }: Props) {
         {album.photos.length === 0 ? (
           <p className="py-24 text-center text-white/50">Cet album ne contient pas encore de médias.</p>
         ) : (
-          <div className="columns-1 gap-4 sm:columns-2 lg:columns-3 [&>*]:mb-4">
-            {album.photos.map((photo, i) => (
+          <Masonry
+            items={album.photos}
+            render={(photo, i) => (
               <motion.button
                 key={photo._id}
                 initial={{ opacity: 0, y: 30 }}
@@ -98,8 +100,8 @@ export default function AlbumViewer({ album, number, onClose }: Props) {
                   </span>
                 )}
               </motion.button>
-            ))}
-          </div>
+            )}
+          />
         )}
       </div>
 

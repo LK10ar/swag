@@ -17,6 +17,7 @@ import {
   deleteAlbum,
   deletePhoto,
   fetchAlbums,
+  fetchMessages,
   getToken,
   login,
   reorderPhotos,
@@ -25,12 +26,15 @@ import {
   updatePhoto,
   uploadFile,
   type Album,
+  type Message,
   type PhotoType,
 } from '@/lib/api';
 import { ACCENT_MAP, type AccentColor } from '@/lib/photos';
 import { LIGHT, btnVars, mediaType, stillOf } from '@/lib/helpers';
 import MediaThumb from './MediaThumb';
 import LiveProjectButton from './LiveProjectButton';
+import AdminSite from './AdminSite';
+import AdminMessages from './AdminMessages';
 
 const INPUT =
   'w-full rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/30 focus:border-neon-green focus:outline-none';
@@ -417,6 +421,8 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
   const [selected, setSelected] = useState<string | 'new' | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState<'albums' | 'site' | 'messages'>('albums');
+  const [messages, setMessages] = useState<Message[]>([]);
 
   const handleError = useCallback(
     (e: unknown) => {
@@ -436,6 +442,12 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
       .catch(handleError)
       .finally(() => setLoading(false));
   }, [handleError]);
+
+  useEffect(() => {
+    fetchMessages().then(setMessages).catch(() => {});
+  }, []);
+
+  const unread = messages.filter((m) => !m.read).length;
 
   function upsert(a: Album) {
     setError('');
@@ -467,6 +479,30 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
         </div>
       </header>
 
+      <nav className="mx-auto flex max-w-7xl gap-2 px-5 pt-6 md:px-10">
+        {(
+          [
+            ['albums', 'Albums'],
+            ['site', 'Site'],
+            ['messages', 'Messages'],
+          ] as const
+        ).map(([key, label]) => (
+          <button
+            key={key}
+            onClick={() => setTab(key)}
+            className={`rounded-lg border px-4 py-2 text-sm font-bold transition-colors ${
+              tab === key ? 'border-neon-green bg-white/10 text-white' : 'border-white/10 text-white/60 hover:bg-white/5'
+            }`}
+          >
+            {label}
+            {key === 'messages' && unread > 0 && (
+              <span className="ml-2 rounded-full bg-neon-pink px-2 py-0.5 text-xs text-white">{unread}</span>
+            )}
+          </button>
+        ))}
+      </nav>
+
+      {tab === 'albums' ? (
       <div className="mx-auto grid max-w-7xl gap-8 px-5 py-8 md:px-10 lg:grid-cols-[320px_1fr]">
         <aside className="flex flex-col gap-3">
           <button className={BTN_PRIMARY} onClick={() => setSelected('new')}>
@@ -514,6 +550,11 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
           )}
         </main>
       </div>
+      ) : tab === 'site' ? (
+        <AdminSite onError={handleError} />
+      ) : (
+        <AdminMessages messages={messages} onChange={setMessages} onError={handleError} />
+      )}
     </div>
   );
 }

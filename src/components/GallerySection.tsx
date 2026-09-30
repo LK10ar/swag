@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import AnimatedText from './AnimatedText';
 import Lightbox from './Lightbox';
 import MediaThumb from './MediaThumb';
+import Masonry from './Masonry';
 import type { PhotoType } from '@/lib/api';
 import { useAlbums } from '@/lib/albums';
 
@@ -38,8 +39,9 @@ export default function GallerySection() {
           </h2>
         </div>
 
-        <div className="columns-1 gap-4 sm:columns-2 lg:columns-3 [&>*]:mb-4">
-          {photos.map((photo, i) => (
+        <Masonry
+          items={photos}
+          render={(photo, i) => (
             <motion.button
               key={`${photo.url}-${i}`}
               initial={{ opacity: 0, y: 30 }}
@@ -57,8 +59,8 @@ export default function GallerySection() {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
             </motion.button>
-          ))}
-        </div>
+          )}
+        />
       </div>
 
       <AnimatePresence>

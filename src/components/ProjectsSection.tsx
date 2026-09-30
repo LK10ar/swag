@@ -44,7 +44,7 @@ function ProjectCard({
       <motion.div
         style={{ scale, marginTop: `${index * 28}px`, transformOrigin: 'top', borderColor: album.frameColor || LIGHT }}
         onClick={onOpen}
-        className="relative flex w-full max-w-[1760px] cursor-pointer flex-col gap-6 rounded-[40px] border-2 bg-[#0C0C0C] p-4 sm:gap-8 sm:rounded-[50px] sm:p-6 md:gap-10 md:rounded-[60px] md:p-8"
+        className="relative flex w-full max-w-[1400px] cursor-pointer flex-col gap-6 rounded-[40px] border-2 bg-[#0C0C0C] p-4 sm:gap-8 sm:rounded-[50px] sm:p-6 md:gap-10 md:rounded-[60px] md:p-8"
       >
         {/* Ligne du haut */}
         <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
@@ -78,29 +78,27 @@ function ProjectCard({
           />
         </div>
 
-        {/* Grille d'images */}
-        <div className="flex w-full flex-col gap-4 md:flex-row md:gap-5">
-          <div className="flex w-full flex-col gap-4 md:w-[40%] md:gap-5">
+        {/* Grille d'images : hauteur fixe, les 3 images remplissent leur case */}
+        <div className="grid w-full grid-cols-1 gap-4 md:h-[clamp(240px,min(30vw,42vh),440px)] md:grid-cols-[2fr_3fr] md:gap-5">
+          <div className="grid min-h-0 grid-cols-2 gap-4 md:grid-cols-1 md:grid-rows-2 md:gap-5">
             <img
               src={img1}
               alt={`${album.title} — aperçu 1`}
               loading="lazy"
-              className="w-full rounded-[40px] object-cover sm:rounded-[50px] md:rounded-[60px]"
-              style={{ height: 'clamp(130px, min(16vw, 17vh), 230px)' }}
+              className="h-36 w-full rounded-[30px] object-cover sm:rounded-[40px] md:h-full md:min-h-0 md:rounded-[50px]"
             />
             <img
               src={img2}
               alt={`${album.title} — aperçu 2`}
               loading="lazy"
-              className="w-full rounded-[30px] object-cover sm:rounded-[40px] md:rounded-[60px]"
-              style={{ height: 'clamp(160px, min(22vw, 25vh), 340px)' }}
+              className="h-36 w-full rounded-[30px] object-cover sm:rounded-[40px] md:h-full md:min-h-0 md:rounded-[50px]"
             />
           </div>
           <img
             src={img3}
             alt={`${album.title} — aperçu 3`}
             loading="lazy"
-            className="min-h-[200px] w-full self-stretch rounded-[30px] object-cover sm:rounded-[40px] md:w-[60%] md:rounded-[60px]"
+            className="h-56 w-full rounded-[30px] object-cover sm:rounded-[40px] md:h-full md:min-h-0 md:rounded-[50px]"
           />
         </div>
       </motion.div>

@@ -3,14 +3,15 @@ import { Zap } from 'lucide-react';
 import SpotlightReveal from './SpotlightReveal';
 import ContactButton from './ContactButton';
 import Magnet from './Magnet';
-import { PHOTOS } from '@/lib/photos';
+import { useSettings } from '@/lib/settings';
 
 export default function HeroSection() {
+  const { settings } = useSettings();
   return (
     <section className="relative min-h-screen w-full overflow-hidden bg-[#0C0C0C]">
       <SpotlightReveal
-        baseImage={PHOTOS.heroBase}
-        revealImage={PHOTOS.heroReveal}
+        baseImage={settings.hero.base}
+        revealImage={settings.hero.reveal}
         radius={280}
         className="absolute inset-0"
       />
@@ -29,7 +30,7 @@ export default function HeroSection() {
         </Magnet>
       </div>
 
-      <div className="relative z-20 mx-auto flex min-h-screen max-w-7xl flex-col justify-between px-5 pb-24 pt-32 md:px-10 md:pt-40">
+      <div className="relative z-20 mx-auto flex min-h-screen max-w-7xl flex-col justify-between px-5 pt-32 md:px-10 md:pt-40" style={{ paddingBottom: 'calc(11.5vw + 2rem)' }}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
