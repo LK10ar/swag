@@ -28,8 +28,8 @@ export default function MediaThumb({ photo, alt, className = '' }: Props) {
       )}
       {type !== 'image' && (
         <span className="pointer-events-none absolute inset-0 flex items-center justify-center">
-          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur-sm">
-            <Play size={24} fill="currentColor" />
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur-sm md:h-14 md:w-14">
+            <Play size={24} fill="currentColor" className="h-3.5 w-3.5 md:h-6 md:w-6" />
           </span>
         </span>
       )}
