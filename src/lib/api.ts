@@ -3,7 +3,8 @@ import type { AccentColor } from './photos';
 export const API_URL =
   ((import.meta.env.VITE_API_URL as string | undefined) || 'http://localhost:5000').replace(/\/$/, '');
 
-export type Photo = { _id: string; url: string; caption?: string };
+export type PhotoType = 'image' | 'video' | 'youtube';
+export type Photo = { _id: string; url: string; type?: PhotoType; caption?: string };
 
 export type Album = {
   _id: string;
@@ -13,10 +14,16 @@ export type Album = {
   accent: AccentColor;
   cover: string;
   order: number;
+  frameColor?: string;
+  numberColor?: string;
+  buttonColor?: string;
+  hoverColor?: string;
   photos: Photo[];
 };
 
-export type AlbumInput = Partial<Pick<Album, 'title' | 'year' | 'location' | 'accent' | 'cover' | 'order'>>;
+export type AlbumInput = Partial<
+  Pick<Album, 'title' | 'year' | 'location' | 'accent' | 'cover' | 'order' | 'frameColor' | 'numberColor' | 'buttonColor' | 'hoverColor'>
+>;
 
 export class ApiError extends Error {
   status: number;
@@ -62,7 +69,7 @@ export const updateAlbum = (id: string, data: AlbumInput) =>
 export const deleteAlbum = (id: string) =>
   request<{ ok: true }>(`/api/albums/${id}`, { method: 'DELETE' }, true);
 
-export const addPhotos = (id: string, photos: { url: string; caption?: string }[]) =>
+export const addPhotos = (id: string, photos: { url: string; type?: PhotoType; caption?: string }[]) =>
   request<Album>(`/api/albums/${id}/photos`, json('POST', { photos }), true);
 export const updatePhoto = (id: string, photoId: string, data: { url?: string; caption?: string }) =>
   request<Album>(`/api/albums/${id}/photos/${photoId}`, json('PUT', data), true);
@@ -71,9 +78,8 @@ export const deletePhoto = (id: string, photoId: string) =>
 export const reorderPhotos = (id: string, photoIds: string[]) =>
   request<Album>(`/api/albums/${id}/reorder`, json('PUT', { photoIds }), true);
 
-export async function uploadFile(file: File): Promise<string> {
+export async function uploadFile(file: File): Promise<{ url: string; type: PhotoType }> {
   const form = new FormData();
   form.append('file', file);
-  const { url } = await request<{ url: string }>('/api/upload', { method: 'POST', body: form }, true);
-  return url;
+  return request<{ url: string; type: PhotoType }>('/api/upload', { method: 'POST', body: form }, true);
 }
