@@ -7,6 +7,7 @@ import AboutSection from './components/AboutSection';
 import ServicesSection from './components/ServicesSection';
 import ProjectsSection from './components/ProjectsSection';
 import GallerySection from './components/GallerySection';
+import GalleryPage from './components/GalleryPage';
 import ContactSection from './components/ContactSection';
 import Footer from './components/Footer';
 import ScrollTopButton from './components/ScrollTopButton';
@@ -14,35 +15,63 @@ import Admin from './components/Admin';
 import { AlbumsProvider } from './lib/albums';
 import { SettingsProvider } from './lib/settings';
 
-const isAdminHash = () => window.location.hash.startsWith('#/admin');
+type Route = 'home' | 'admin' | 'gallery';
+
+function getRoute(): Route {
+  const h = window.location.hash;
+  if (h.startsWith('#/admin')) return 'admin';
+  if (h.startsWith('#/gallery')) return 'gallery';
+  return 'home';
+}
 
 export default function App() {
-  const [admin, setAdmin] = useState(isAdminHash());
+  const [route, setRoute] = useState<Route>(getRoute);
 
   useEffect(() => {
-    const onHash = () => setAdmin(isAdminHash());
+    const onHash = () => setRoute(getRoute());
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
 
-  // Admin accessible sur https://<user>.github.io/<repo>/#/admin
-  if (admin) return <Admin />;
+  // Changement de page : on va à la section demandée (#gallery, #contact…) ou tout en haut
+  useEffect(() => {
+    if (route === 'admin') return;
+    const id = window.location.hash.slice(1);
+    if (route === 'home' && id && !id.startsWith('/')) {
+      requestAnimationFrame(() => document.getElementById(id)?.scrollIntoView());
+    } else {
+      window.scrollTo(0, 0);
+    }
+  }, [route]);
+
+  // Admin : https://<user>.github.io/<repo>/#/admin — Galerie : #/gallery
+  if (route === 'admin') return <Admin />;
 
   return (
     <SettingsProvider>
     <AlbumsProvider>
-      <Splash />
-      <Navbar />
-      <main>
-        <HeroSection />
-        <MarqueeSection />
-        <AboutSection />
-        <ServicesSection />
-        <ProjectsSection />
-        <GallerySection />
-        <ContactSection />
-      </main>
-      <Footer />
+      {route === 'gallery' ? (
+        <>
+          <Navbar />
+          <GalleryPage />
+          <Footer />
+        </>
+      ) : (
+        <>
+          <Splash />
+          <Navbar />
+          <main>
+            <HeroSection />
+            <MarqueeSection />
+            <AboutSection />
+            <ServicesSection />
+            <ProjectsSection />
+            <GallerySection />
+            <ContactSection />
+          </main>
+          <Footer />
+        </>
+      )}
       <ScrollTopButton />
     </AlbumsProvider>
     </SettingsProvider>
