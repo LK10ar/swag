@@ -2,8 +2,10 @@ import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { mediaType, stillOf, youtubeId } from '@/lib/helpers';
+import type { PhotoType } from '@/lib/api';
 
-type Item = { url: string; caption?: string };
+type Item = { url: string; type?: PhotoType; caption?: string };
 
 type Props = {
   photos: Item[];
@@ -33,7 +35,8 @@ export default function Lightbox({ photos, index, onIndex, onClose }: Props) {
   useEffect(() => {
     [index - 1, index + 1].forEach((i) => {
       const item = photos[(i + total) % total];
-      if (item) new Image().src = item.url;
+      const still = item && mediaType(item) === 'image' ? stillOf(item) : null;
+      if (still) new Image().src = still;
     });
   }, [index, photos, total]);
 
@@ -48,6 +51,8 @@ export default function Lightbox({ photos, index, onIndex, onClose }: Props) {
 
   const current = photos[index];
   if (!current) return null;
+  const type = mediaType(current);
+  const ytId = type === 'youtube' ? youtubeId(current.url) : null;
 
   return createPortal(
     <motion.div
@@ -56,7 +61,10 @@ export default function Lightbox({ photos, index, onIndex, onClose }: Props) {
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-[110] flex items-center justify-center bg-black/95"
       onClick={onClose}
-      onTouchStart={(e) => (touchX.current = e.touches[0].clientX)}
+      onTouchStart={(e) => {
+        // on ne swipe pas quand on touche le lecteur vidéo
+        touchX.current = (e.target as HTMLElement).closest('video,iframe') ? null : e.touches[0].clientX;
+      }}
       onTouchEnd={(e) => {
         if (touchX.current === null) return;
         const dx = e.changedTouches[0].clientX - touchX.current;
@@ -101,18 +109,53 @@ export default function Lightbox({ photos, index, onIndex, onClose }: Props) {
       )}
 
       <AnimatePresence mode="wait">
-        <motion.img
-          key={current.url}
-          src={current.url}
-          alt={current.caption || `Photo ${index + 1}`}
-          initial={{ opacity: 0, scale: 0.97 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
-          onClick={(e) => e.stopPropagation()}
-          className="max-h-[85vh] max-w-[92vw] select-none rounded-2xl object-contain md:max-w-[80vw]"
-          draggable={false}
-        />
+        {type === 'video' ? (
+          <motion.video
+            key={current.url}
+            src={current.url}
+            controls
+            autoPlay
+            playsInline
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={(e) => e.stopPropagation()}
+            className="max-h-[85vh] max-w-[92vw] rounded-2xl bg-black md:max-w-[80vw]"
+          />
+        ) : type === 'youtube' && ytId ? (
+          <motion.div
+            key={current.url}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={(e) => e.stopPropagation()}
+            className="aspect-video overflow-hidden rounded-2xl bg-black"
+            style={{ width: 'min(92vw, calc(85vh * 1.7778))' }}
+          >
+            <iframe
+              src={`https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0`}
+              title={current.caption || 'Vidéo YouTube'}
+              allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+              allowFullScreen
+              className="h-full w-full"
+            />
+          </motion.div>
+        ) : (
+          <motion.img
+            key={current.url}
+            src={current.url}
+            alt={current.caption || `Photo ${index + 1}`}
+            initial={{ opacity: 0, scale: 0.97 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={(e) => e.stopPropagation()}
+            className="max-h-[85vh] max-w-[92vw] select-none rounded-2xl object-contain md:max-w-[80vw]"
+            draggable={false}
+          />
+        )}
       </AnimatePresence>
 
       <div className="pointer-events-none absolute bottom-5 left-0 right-0 flex flex-col items-center gap-1 px-6 text-center">

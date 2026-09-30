@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import AnimatedText from './AnimatedText';
 import Lightbox from './Lightbox';
+import MediaThumb from './MediaThumb';
+import type { PhotoType } from '@/lib/api';
 import { useAlbums } from '@/lib/albums';
 
 const MAX_PHOTOS = 12;
@@ -12,12 +14,12 @@ export default function GallerySection() {
 
   // Une photo par album à tour de rôle, pour mélanger les événements
   const photos = useMemo(() => {
-    const out: { url: string; caption?: string }[] = [];
+    const out: { url: string; type?: PhotoType; caption?: string }[] = [];
     const max = Math.max(0, ...albums.map((a) => a.photos.length));
     for (let i = 0; i < max && out.length < MAX_PHOTOS; i++) {
       for (const a of albums) {
         const p = a.photos[i];
-        if (p && out.length < MAX_PHOTOS) out.push({ url: p.url, caption: p.caption || a.title });
+        if (p && out.length < MAX_PHOTOS) out.push({ url: p.url, type: p.type, caption: p.caption || a.title });
       }
     }
     return out;
@@ -48,11 +50,10 @@ export default function GallerySection() {
               aria-label={`Ouvrir la photo ${i + 1}`}
               className="group relative block w-full overflow-hidden rounded-xl border border-white/10"
             >
-              <img
-                src={photo.url}
+              <MediaThumb
+                photo={photo}
                 alt={photo.caption || `Rock photography ${i + 1}`}
                 className="w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                loading="lazy"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
             </motion.button>

@@ -25,8 +25,12 @@ import {
   updatePhoto,
   uploadFile,
   type Album,
+  type PhotoType,
 } from '@/lib/api';
 import { ACCENT_MAP, type AccentColor } from '@/lib/photos';
+import { LIGHT, btnVars, mediaType, stillOf } from '@/lib/helpers';
+import MediaThumb from './MediaThumb';
+import LiveProjectButton from './LiveProjectButton';
 
 const INPUT =
   'w-full rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/30 focus:border-neon-green focus:outline-none';
@@ -106,7 +110,12 @@ function PhotoTile({
   return (
     <div className="overflow-hidden rounded-xl border border-white/10 bg-white/5">
       <div className="relative">
-        <img src={photo.url} alt={photo.caption || ''} className="h-40 w-full object-cover" loading="lazy" />
+        <MediaThumb photo={photo} alt={photo.caption || ''} className="h-40 w-full object-cover" />
+        {mediaType(photo) !== 'image' && (
+          <span className="absolute right-2 top-2 rounded-full bg-black/70 px-2 py-0.5 text-xs text-white">
+            {mediaType(photo) === 'youtube' ? 'YouTube' : 'Vidéo'}
+          </span>
+        )}
         {isCover && (
           <span className="absolute left-2 top-2 rounded-full bg-neon-green px-2 py-0.5 text-xs font-bold text-[#0C0C0C]">
             Couverture
@@ -124,9 +133,10 @@ function PhotoTile({
           <div className="flex gap-1">
             <button
               className={icon}
-              onClick={() => run(() => updateAlbum(albumId, { cover: photo.url }))}
+              disabled={!stillOf(photo)}
+              onClick={() => run(() => updateAlbum(albumId, { cover: stillOf(photo) || '' }))}
               aria-label="Définir comme couverture"
-              title="Définir comme couverture"
+              title={stillOf(photo) ? 'Définir comme couverture' : 'Un fichier vidéo ne peut pas servir de couverture'}
             >
               <Star size={14} />
             </button>
@@ -170,6 +180,29 @@ function PhotoTile({
   );
 }
 
+/* ------------------------------ Champ couleur ------------------------------ */
+
+function ColorField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+  return (
+    <div className="flex items-center gap-2">
+      <input
+        type="color"
+        value={value || LIGHT}
+        onChange={(e) => onChange(e.target.value)}
+        aria-label={label}
+        className="h-9 w-12 flex-shrink-0 cursor-pointer rounded border border-white/15 bg-transparent p-0.5"
+      />
+      <span className="flex-1 text-sm text-white/80">{label}</span>
+      <span className="font-mono text-xs text-white/40">{value || 'défaut'}</span>
+      {value && (
+        <button type="button" className="text-xs text-white/50 underline" onClick={() => onChange('')}>
+          Réinitialiser
+        </button>
+      )}
+    </div>
+  );
+}
+
 /* --------------------------- Éditeur d'un album -------------------------- */
 
 function AlbumEditor({
@@ -190,12 +223,19 @@ function AlbumEditor({
     accent: (album?.accent ?? 'green') as AccentColor,
     cover: album?.cover ?? '',
     order: String(album?.order ?? 0),
+    frameColor: album?.frameColor ?? '',
+    numberColor: album?.numberColor ?? '',
+    buttonColor: album?.buttonColor ?? '',
+    hoverColor: album?.hoverColor ?? '',
   });
   const [urls, setUrls] = useState('');
   const [busy, setBusy] = useState('');
 
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
+
+  const setColor = (k: 'frameColor' | 'numberColor' | 'buttonColor' | 'hoverColor') => (v: string) =>
+    setForm((f) => ({ ...f, [k]: v }));
 
   async function run(fn: () => Promise<Album>, label = 'Enregistrement…') {
     setBusy(label);
@@ -214,10 +254,10 @@ function AlbumEditor({
     if (!files || !album) return;
     setBusy('Upload…');
     try {
-      const uploaded: { url: string }[] = [];
+      const uploaded: { url: string; type: PhotoType }[] = [];
       for (const file of Array.from(files)) {
         setBusy(`Upload ${uploaded.length + 1}/${files.length}…`);
-        uploaded.push({ url: await uploadFile(file) });
+        uploaded.push(await uploadFile(file));
       }
       onChange(await addPhotos(album._id, uploaded));
     } catch (e) {
@@ -253,6 +293,29 @@ function AlbumEditor({
           <input className={INPUT} placeholder="Image de couverture (URL, optionnel)" value={form.cover} onChange={set('cover')} />
           <input className={INPUT} type="number" placeholder="Ordre (0 = en premier)" value={form.order} onChange={set('order')} />
         </div>
+
+        <div className="flex flex-col gap-3 border-t border-white/10 pt-4">
+          <h3 className="text-sm font-bold uppercase tracking-wider text-white/60">Couleurs de la carte</h3>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <ColorField label="Cadre" value={form.frameColor} onChange={setColor('frameColor')} />
+            <ColorField label="Chiffre" value={form.numberColor} onChange={setColor('numberColor')} />
+            <ColorField label="Bouton « Open album »" value={form.buttonColor} onChange={setColor('buttonColor')} />
+            <ColorField label="Bouton au survol" value={form.hoverColor} onChange={setColor('hoverColor')} />
+          </div>
+          <div
+            className="flex items-center justify-between gap-4 rounded-3xl border-2 bg-[#0C0C0C] p-4"
+            style={{ borderColor: form.frameColor || LIGHT }}
+          >
+            <span className="text-5xl font-black leading-none" style={{ color: form.numberColor || LIGHT }}>
+              01
+            </span>
+            <LiveProjectButton
+              label="Open album"
+              style={btnVars(form)}
+              customHover={!!form.hoverColor}
+            />
+          </div>
+        </div>
         <div className="flex flex-wrap gap-2">
           <button
             className={BTN_PRIMARY}
@@ -287,10 +350,10 @@ function AlbumEditor({
 
           <div className="grid gap-4 md:grid-cols-2">
             <label className={`${BTN} cursor-pointer`}>
-              <Upload size={16} /> Envoyer des fichiers
+              <Upload size={16} /> Envoyer photos / vidéos
               <input
                 type="file"
-                accept="image/*"
+                accept="image/*,video/mp4,video/webm,video/quicktime"
                 multiple
                 className="hidden"
                 disabled={!!busy}
@@ -303,7 +366,7 @@ function AlbumEditor({
             <div className="flex gap-2">
               <textarea
                 className={`${INPUT} h-[38px] min-h-[38px] resize-y`}
-                placeholder="Ou colle des URLs (une par ligne)"
+                placeholder="Ou colle des URLs : images, vidéos .mp4 ou liens YouTube (une par ligne)"
                 value={urls}
                 onChange={(e) => setUrls(e.target.value)}
               />
@@ -332,7 +395,7 @@ function AlbumEditor({
                   key={photo._id + photo.url + (photo.caption || '')}
                   albumId={album._id}
                   photo={photo}
-                  isCover={album.cover === photo.url}
+                  isCover={album.cover === stillOf(photo)}
                   isFirst={i === 0}
                   isLast={i === album.photos.length - 1}
                   run={(fn) => run(fn)}

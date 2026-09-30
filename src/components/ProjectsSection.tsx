@@ -6,13 +6,14 @@ import AlbumViewer from './AlbumViewer';
 import { useAlbums } from '@/lib/albums';
 import type { Album } from '@/lib/api';
 import { ACCENT_MAP, PLACEHOLDER_IMAGE } from '@/lib/photos';
+import { LIGHT, btnVars, stillOf } from '@/lib/helpers';
 
 const pad = (n: number) => String(n).padStart(2, '0');
 const label = (a: Album) => [a.year, a.location].filter(Boolean).join(' · ');
 
 // 3 images pour la grille de la carte : couverture + premières photos, complétées par le placeholder
 function cardImages(album: Album): string[] {
-  const urls = [album.cover, ...album.photos.map((p) => p.url)].filter(Boolean);
+  const urls = [album.cover, ...album.photos.map(stillOf)].filter((u): u is string => !!u);
   const unique = urls.filter((u, i) => urls.indexOf(u) === i);
   while (unique.length < 3) unique.push(PLACEHOLDER_IMAGE);
   return unique.slice(0, 3);
@@ -36,20 +37,21 @@ function ProjectCard({
   const scale = useTransform(progress, [rangeStart, 1], [1, targetScale]);
   const c = ACCENT_MAP[album.accent] ?? ACCENT_MAP.green;
   const [img1, img2, img3] = cardImages(album);
+  const numberColor = album.numberColor || LIGHT;
 
   return (
     <div className="sticky top-24 flex items-start justify-center md:top-32" style={{ minHeight: '85vh' }}>
       <motion.div
-        style={{ scale, marginTop: `${index * 28}px`, transformOrigin: 'top' }}
+        style={{ scale, marginTop: `${index * 28}px`, transformOrigin: 'top', borderColor: album.frameColor || LIGHT }}
         onClick={onOpen}
-        className="relative flex w-full max-w-[1760px] cursor-pointer flex-col gap-6 rounded-[40px] border-2 border-[#D7E2EA] bg-[#0C0C0C] p-4 sm:gap-8 sm:rounded-[50px] sm:p-6 md:gap-10 md:rounded-[60px] md:p-8"
+        className="relative flex w-full max-w-[1760px] cursor-pointer flex-col gap-6 rounded-[40px] border-2 bg-[#0C0C0C] p-4 sm:gap-8 sm:rounded-[50px] sm:p-6 md:gap-10 md:rounded-[60px] md:p-8"
       >
         {/* Ligne du haut */}
         <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
           <div className="flex items-center gap-6 sm:gap-8 md:gap-10">
             <span
-              className="font-black uppercase leading-none text-[#D7E2EA]"
-              style={{ fontSize: 'clamp(3rem, min(10vw, 14vh), 140px)' }}
+              className="font-black uppercase leading-none"
+              style={{ fontSize: 'clamp(3rem, min(10vw, 14vh), 140px)', color: numberColor }}
             >
               {pad(index + 1)}
             </span>
@@ -68,7 +70,12 @@ function ProjectCard({
               </span>
             </div>
           </div>
-          <LiveProjectButton label="Open album" onClick={onOpen} />
+          <LiveProjectButton
+            label="Open album"
+            onClick={onOpen}
+            style={btnVars(album)}
+            customHover={!!album.hoverColor}
+          />
         </div>
 
         {/* Grille d'images */}

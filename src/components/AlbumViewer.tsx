@@ -3,8 +3,10 @@ import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { X } from 'lucide-react';
 import Lightbox from './Lightbox';
+import MediaThumb from './MediaThumb';
 import type { Album } from '@/lib/api';
 import { ACCENT_MAP } from '@/lib/photos';
+import { LIGHT } from '@/lib/helpers';
 
 type Props = { album: Album; number: string; onClose: () => void };
 
@@ -44,8 +46,8 @@ export default function AlbumViewer({ album, number, onClose }: Props) {
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-4 md:px-10 md:py-6">
           <div className="flex min-w-0 items-center gap-4 md:gap-8">
             <span
-              className="font-black leading-none text-[#D7E2EA]"
-              style={{ fontSize: 'clamp(2rem, 6vw, 80px)' }}
+              className="font-black leading-none"
+              style={{ fontSize: 'clamp(2rem, 6vw, 80px)', color: album.numberColor || LIGHT }}
             >
               {number}
             </span>
@@ -61,7 +63,8 @@ export default function AlbumViewer({ album, number, onClose }: Props) {
           <button
             onClick={onClose}
             aria-label="Fermer l'album"
-            className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border-2 border-[#D7E2EA] text-[#D7E2EA] transition-colors hover:bg-[#D7E2EA]/10 active:bg-[#D7E2EA]/20"
+            className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border-2 transition-colors hover:bg-white/10 active:bg-white/20"
+            style={{ borderColor: album.buttonColor || LIGHT, color: album.buttonColor || LIGHT }}
           >
             <X size={22} />
           </button>
@@ -70,7 +73,7 @@ export default function AlbumViewer({ album, number, onClose }: Props) {
 
       <div className="mx-auto max-w-7xl px-5 py-8 md:px-10 md:py-12">
         {album.photos.length === 0 ? (
-          <p className="py-24 text-center text-white/50">Cet album ne contient pas encore de photos.</p>
+          <p className="py-24 text-center text-white/50">Cet album ne contient pas encore de médias.</p>
         ) : (
           <div className="columns-1 gap-4 sm:columns-2 lg:columns-3 [&>*]:mb-4">
             {album.photos.map((photo, i) => (
@@ -82,12 +85,11 @@ export default function AlbumViewer({ album, number, onClose }: Props) {
                 onClick={() => setOpenIndex(i)}
                 className="group relative block w-full overflow-hidden rounded-3xl border border-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                 style={{ outlineColor: c.raw }}
-                aria-label={`Ouvrir la photo ${i + 1}`}
+                aria-label={`Ouvrir le média ${i + 1}`}
               >
-                <img
-                  src={photo.url}
-                  alt={photo.caption || `${album.title} — photo ${i + 1}`}
-                  loading="lazy"
+                <MediaThumb
+                  photo={photo}
+                  alt={photo.caption || `${album.title} — média ${i + 1}`}
                   className="w-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
                 {photo.caption && (
