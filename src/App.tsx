@@ -7,9 +7,12 @@ import AboutSection from './components/AboutSection';
 import ServicesSection from './components/ServicesSection';
 import ProjectsSection from './components/ProjectsSection';
 import GallerySection from './components/GallerySection';
+import ContactSection from './components/ContactSection';
 import Footer from './components/Footer';
+import ScrollTopButton from './components/ScrollTopButton';
 import Admin from './components/Admin';
 import { AlbumsProvider } from './lib/albums';
+import { SettingsProvider } from './lib/settings';
 
 const isAdminHash = () => window.location.hash.startsWith('#/admin');
 
@@ -26,6 +29,7 @@ export default function App() {
   if (admin) return <Admin />;
 
   return (
+    <SettingsProvider>
     <AlbumsProvider>
       <Splash />
       <Navbar />
@@ -36,8 +40,11 @@ export default function App() {
         <ServicesSection />
         <ProjectsSection />
         <GallerySection />
-        <Footer />
+        <ContactSection />
       </main>
+      <Footer />
+      <ScrollTopButton />
     </AlbumsProvider>
+    </SettingsProvider>
   );
 }
