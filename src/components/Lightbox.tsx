@@ -135,7 +135,7 @@ export default function Lightbox({ photos, index, onIndex, onClose }: Props) {
             style={{ width: 'min(92vw, calc(85vh * 1.7778))' }}
           >
             <iframe
-              src={`https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0`}
+              src={`https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1&rel=0`}
               title={current.caption || 'Vidéo YouTube'}
               allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
               allowFullScreen
