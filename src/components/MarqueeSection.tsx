@@ -3,7 +3,7 @@ import { useSettings } from '@/lib/settings';
 
 function PhotoCard({ src, alt }: { src: string; alt: string }) {
   return (
-    <div className="relative h-44 w-64 flex-shrink-0 overflow-hidden rounded-xl border border-white/10 md:h-56 md:w-80">
+    <div className="relative h-24 w-36 flex-shrink-0 overflow-hidden rounded-lg border border-white/10 sm:h-40 sm:w-60 sm:rounded-xl md:h-56 md:w-80">
       <img src={src} alt={alt} className="h-full w-full object-cover" loading="lazy" />
       <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
     </div>
@@ -26,7 +26,7 @@ export default function MarqueeSection() {
   if (top.length === 0 && bottom.length === 0) return null;
 
   return (
-    <section className="relative bg-[#0C0C0C] py-20 md:py-32">
+    <section className="relative overflow-x-clip bg-[#0C0C0C] py-16 md:py-32">
       <div className="mb-10 px-5 md:px-10">
         <div className="flex items-center gap-3">
           <div className="h-px flex-1 bg-gradient-to-r from-neon-green/60 to-transparent" />
@@ -36,7 +36,7 @@ export default function MarqueeSection() {
       </div>
 
       {top.length > 0 && (
-        <ParallaxRow speed={-30} className="mb-4">
+        <ParallaxRow speed={-30} className="mb-2 md:mb-4">
           {top.map((src, i) => (
             <PhotoCard key={`t-${i}`} src={src} alt="Rock concert photography" />
           ))}

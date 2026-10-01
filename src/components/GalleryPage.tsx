@@ -5,10 +5,12 @@ import Lightbox from './Lightbox';
 import MediaThumb from './MediaThumb';
 import { useAlbums } from '@/lib/albums';
 import { galleryItems } from '@/lib/gallery';
+import { useSettings } from '@/lib/settings';
 
 /** Page galerie complète : #/gallery */
 export default function GalleryPage() {
   const { albums } = useAlbums();
+  const { t } = useSettings();
   const [filter, setFilter] = useState('all');
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
@@ -35,21 +37,21 @@ export default function GalleryPage() {
             href="#gallery"
             className="inline-flex items-center gap-2 text-sm font-medium uppercase tracking-wider text-white/60 transition-colors hover:text-white"
           >
-            <ArrowLeft size={16} /> Retour au site
+            <ArrowLeft size={16} /> {t('gallery.back')}
           </a>
 
-          <span className="mt-8 block text-xs font-medium uppercase tracking-[0.25em] text-white/50">Gallery</span>
+          <span className="mt-8 block text-xs font-medium uppercase tracking-[0.25em] text-white/50">{t('gallery.kicker')}</span>
           <h1 className="mt-4 text-4xl font-bold leading-tight tracking-tight text-white md:text-6xl">
-            From the <span className="neon-text-pink">archive</span>
+            {t('gallery.title1')} <span className="neon-text-pink">{t('gallery.title2')}</span>
           </h1>
           <p className="mt-3 text-sm text-white/40">
-            {items.length} média{items.length > 1 ? 's' : ''}
+            {items.length} {t('gallery.count')}
           </p>
 
           {albums.length > 1 && (
             <div className="mt-6 flex flex-wrap gap-2">
               <button className={chip(filter === 'all')} onClick={() => setFilter('all')}>
-                Tous ({all.length})
+                {t('gallery.all')} ({all.length})
               </button>
               {albums
                 .filter((a) => counts.has(a._id))
@@ -63,7 +65,7 @@ export default function GalleryPage() {
         </div>
 
         {items.length === 0 ? (
-          <p className="py-24 text-center text-white/40">Aucune photo pour l'instant.</p>
+          <p className="py-24 text-center text-white/40">{t('gallery.empty')}</p>
         ) : (
           <div className="mt-8 grid grid-cols-3 gap-1.5 sm:grid-cols-4 sm:gap-2 md:gap-3 lg:grid-cols-6">
             {items.map((photo, i) => (

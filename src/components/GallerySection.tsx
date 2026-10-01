@@ -1,17 +1,18 @@
 import { useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
-import AnimatedText from './AnimatedText';
 import Lightbox from './Lightbox';
 import MediaThumb from './MediaThumb';
 import { useAlbums } from '@/lib/albums';
 import { galleryItems } from '@/lib/gallery';
+import { useSettings } from '@/lib/settings';
 
-// 18 vignettes : 3 colonnes × 6 rangées sur mobile, 6 colonnes × 3 rangées sur ordinateur
-const PREVIEW = 18;
+// 12 vignettes : 3 colonnes × 4 rangées sur mobile, 6 colonnes × 2 rangées sur ordinateur
+const PREVIEW = 12;
 
 export default function GallerySection() {
   const { albums } = useAlbums();
+  const { t } = useSettings();
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   const all = useMemo(() => galleryItems(albums), [albums]);
@@ -23,10 +24,9 @@ export default function GallerySection() {
     <section id="gallery" className="relative bg-[#0C0C0C] py-24 md:py-36">
       <div className="mx-auto max-w-7xl px-3 sm:px-5 md:px-10">
         <div className="mb-8 px-2 md:mb-12 md:px-0">
-          <span className="text-xs font-medium uppercase tracking-[0.25em] text-white/50">Gallery</span>
+          <span className="text-xs font-medium uppercase tracking-[0.25em] text-white/50">{t('gallery.kicker')}</span>
           <h2 className="mt-4 text-4xl font-bold leading-tight tracking-tight text-white md:text-6xl">
-            <AnimatedText text="From the" />{' '}
-            <span className="neon-text-pink"><AnimatedText text="archive" delay={0.15} /></span>
+            {t('gallery.title1')} <span className="neon-text-pink">{t('gallery.title2')}</span>
           </h2>
         </div>
 
@@ -58,7 +58,7 @@ export default function GallerySection() {
               href="#/gallery"
               className="group inline-flex items-center gap-3 rounded-full border-2 border-neon-pink px-8 py-3 text-sm font-semibold uppercase tracking-widest text-neon-pink transition-colors duration-200 hover:bg-neon-pink hover:text-[#0C0C0C] md:px-10 md:py-3.5 md:text-base"
             >
-              Voir plus
+              {t('gallery.more')}
               <span className="text-xs font-normal opacity-70">+{all.length - PREVIEW}</span>
               <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
             </a>

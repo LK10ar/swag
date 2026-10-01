@@ -4,6 +4,7 @@ import FadeIn from './FadeIn';
 import LiveProjectButton from './LiveProjectButton';
 import AlbumViewer from './AlbumViewer';
 import { useAlbums } from '@/lib/albums';
+import { useSettings } from '@/lib/settings';
 import type { Album } from '@/lib/api';
 import { ACCENT_MAP, PLACEHOLDER_IMAGE } from '@/lib/photos';
 import { LIGHT, btnVars, stillOf } from '@/lib/helpers';
@@ -32,6 +33,7 @@ function ProjectCard({
   progress: MotionValue<number>;
   onOpen: () => void;
 }) {
+  const { t } = useSettings();
   const rangeStart = index / total;
   const targetScale = 1 - (total - 1 - index) * 0.03;
   const scale = useTransform(progress, [rangeStart, 1], [1, targetScale]);
@@ -71,7 +73,7 @@ function ProjectCard({
             </div>
           </div>
           <LiveProjectButton
-            label="Open album"
+            label={t('projects.open')}
             onClick={onOpen}
             style={btnVars(album)}
             customHover={!!album.hoverColor}
@@ -108,6 +110,7 @@ function ProjectCard({
 
 export default function ProjectsSection() {
   const { albums, status } = useAlbums();
+  const { t } = useSettings();
   const sectionRef = useRef<HTMLElement>(null);
   const [openId, setOpenId] = useState<string | null>(null);
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start start', 'end end'] });
@@ -127,13 +130,15 @@ export default function ProjectsSection() {
             className="hero-heading w-full text-center font-black uppercase leading-none tracking-tight"
             style={{ fontSize: 'clamp(3rem, 12vw, 160px)' }}
           >
-            Project
+            {t('projects.title')}
           </h2>
         </FadeIn>
       </div>
 
-      {albums.length === 0 && status === 'ready' ? (
-        <p className="pb-24 text-center text-white/50">Les premiers albums arrivent bientôt.</p>
+      {albums.length === 0 ? (
+        <p className="pb-24 text-center text-white/50">
+          {status === 'ready' ? t('projects.empty') : t('projects.loading')}
+        </p>
       ) : (
         albums.map((album, i) => (
           <ProjectCard

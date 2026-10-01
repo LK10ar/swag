@@ -8,12 +8,14 @@ import Masonry from './Masonry';
 import type { Album } from '@/lib/api';
 import { ACCENT_MAP } from '@/lib/photos';
 import { LIGHT } from '@/lib/helpers';
+import { useSettings } from '@/lib/settings';
 
 type Props = { album: Album; number: string; onClose: () => void };
 
 export default function AlbumViewer({ album, number, onClose }: Props) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const c = ACCENT_MAP[album.accent] ?? ACCENT_MAP.green;
+  const { t } = useSettings();
 
   // Échap ferme l'album (la lightbox gère son propre Échap)
   useEffect(() => {
@@ -74,7 +76,7 @@ export default function AlbumViewer({ album, number, onClose }: Props) {
 
       <div className="mx-auto max-w-7xl px-5 py-8 md:px-10 md:py-12">
         {album.photos.length === 0 ? (
-          <p className="py-24 text-center text-white/50">Cet album ne contient pas encore de médias.</p>
+          <p className="py-24 text-center text-white/50">{t('album.empty')}</p>
         ) : (
           <Masonry
             items={album.photos}

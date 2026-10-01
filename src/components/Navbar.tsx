@@ -1,27 +1,23 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, X } from 'lucide-react';
+import { X } from 'lucide-react';
+import Brand from './Brand';
+import LangSwitch from './LangSwitch';
 import { useSettings } from '@/lib/settings';
-
-const NAV_LINKS = [
-  { label: 'Work', href: '#work' },
-  { label: 'About', href: '#about' },
-  { label: 'Services', href: '#services' },
-  { label: 'Gallery', href: '#gallery' },
-  { label: 'Contact', href: '#contact' },
-];
+import { NAV_TARGETS } from '@/lib/nav';
+import { handleFromUrl, safeHref } from '@/lib/helpers';
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
-  const { settings } = useSettings();
+  const { settings, t, langs } = useSettings();
   const { email, instagram } = settings.contact;
+  const items = settings.nav.items.filter((i) => i.visible);
 
   return (
     <>
       <div className="fixed left-0 top-6 z-50 md:top-8" style={{ mixBlendMode: 'difference' }}>
-        <a href="#" className="flex items-center gap-2 pl-5 md:pl-10">
-          <Camera size={28} className="text-neon-green" style={{ filter: 'drop-shadow(0 0 6px #39FF14)' }} />
-          <span className="text-xl font-extrabold tracking-tight text-white">swagtrickryan</span>
+        <a href="#" className="flex items-center pl-5 md:pl-10" aria-label={settings.brand.name}>
+          <Brand />
         </a>
       </div>
 
@@ -30,7 +26,8 @@ export default function Navbar() {
           <button
             onClick={() => setOpen(!open)}
             className="flex h-14 w-14 items-center justify-center rounded-full border border-white/20 bg-white/5 backdrop-blur-md transition-colors duration-300 hover:bg-white hover:text-black"
-            aria-label="Toggle menu"
+            aria-label="Menu"
+            aria-expanded={open}
           >
             <AnimatePresence mode="wait">
               {open ? (
@@ -55,23 +52,24 @@ export default function Navbar() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3, ease: 'easeOut' }}
-            className="fixed right-2 top-20 z-40 w-[calc(100%-1rem)] rounded-2xl border border-white/10 bg-black/95 p-8 backdrop-blur-xl md:right-7 md:top-24 md:w-96"
+            className="fixed right-2 top-20 z-40 max-h-[calc(100svh-6rem)] w-[calc(100%-1rem)] overflow-y-auto rounded-2xl border border-white/10 bg-black/95 p-8 backdrop-blur-xl md:right-7 md:top-24 md:w-96"
           >
             <nav className="flex flex-col gap-3">
-              {NAV_LINKS.map((link, i) => (
+              {items.map((item, i) => (
                 <motion.a
-                  key={link.label}
-                  href={link.href}
+                  key={item.id}
+                  href={NAV_TARGETS[item.id]}
                   onClick={() => setOpen(false)}
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: i * 0.05 }}
                   className="text-3xl font-bold tracking-tight text-white transition-colors hover:text-neon-green md:text-4xl"
                 >
-                  {link.label}
+                  {item.label || t(`nav.${item.id}`)}
                 </motion.a>
               ))}
             </nav>
+
             <div className="mt-8 flex flex-col gap-3 border-t border-white/10 pt-6">
               {email && (
                 <a href={`mailto:${email}`} className="text-sm text-white/60 transition-colors hover:text-white">
@@ -80,13 +78,19 @@ export default function Navbar() {
               )}
               {instagram && (
                 <a
-                  href={instagram}
+                  href={safeHref(instagram)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-xs text-white/40 underline underline-offset-2 transition-colors hover:text-neon-pink"
                 >
-                  Instagram
+                  Instagram {handleFromUrl(instagram)}
                 </a>
+              )}
+              {langs.length > 1 && (
+                <div className="mt-2 flex flex-col gap-2">
+                  <span className="text-xs uppercase tracking-widest text-white/30">{t('menu.language')}</span>
+                  <LangSwitch />
+                </div>
               )}
             </div>
           </motion.div>
