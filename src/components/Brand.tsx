@@ -14,7 +14,7 @@ export default function Brand({ size = 'nav' }: { size?: 'nav' | 'footer' }) {
         <Icon size={px} style={{ color: b.iconColor, filter: `drop-shadow(0 0 6px ${b.iconColor})` }} />
       )}
       {b.iconMode === 'image' && b.logoImage && (
-        <img src={b.logoImage} alt="" style={{ height: px + 6 }} className="w-auto max-w-[80px] object-contain" />
+        <img src={b.logoImage} alt="" style={{ height: 100 }} className="w-auto max-w-[250px] object-contain" />
       )}
       <span
         className={`${size === 'nav' ? 'text-xl' : 'text-lg'} font-extrabold tracking-tight text-white`}
