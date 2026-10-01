@@ -1,4 +1,5 @@
 import type { AccentColor } from './photos';
+import type { SiteSettings } from './siteTypes';
 
 export const API_URL =
   ((import.meta.env.VITE_API_URL as string | undefined) || 'http://localhost:5000').replace(/\/$/, '');
@@ -85,18 +86,14 @@ export async function uploadFile(file: File): Promise<{ url: string; type: Photo
 }
 
 // --- Réglages du site ---
-export type Stat = { value: string; label: string; color: AccentColor };
-
-export type SiteSettings = {
-  hero: { base: string; reveal: string };
-  about: { image: string; heading: string; paragraph: string; touring: string; stats: Stat[] };
-  marquee: { label: string; topRow: string[]; bottomRow: string[] };
-  contact: { instagram: string; email: string; intro: string };
-};
+export type { SiteSettings, Stat } from './siteTypes';
 
 export const fetchSettings = () => request<Partial<SiteSettings>>('/api/settings');
 export const saveSettings = (settings: SiteSettings) =>
   request<SiteSettings>('/api/settings', json('PUT', settings), true);
+
+export const translateTexts = (from: string, to: string, texts: string[]) =>
+  request<{ texts: string[] }>('/api/translate', json('POST', { from, to, texts }), true);
 
 // --- Contact ---
 export const sendContact = (data: { name: string; email: string; message: string; website?: string }) =>
@@ -107,3 +104,6 @@ export const fetchMessages = () => request<Message[]>('/api/messages', {}, true)
 export const setMessageRead = (id: string, read: boolean) =>
   request<Message>(`/api/messages/${id}`, json('PUT', { read }), true);
 export const deleteMessage = (id: string) => request<{ ok: true }>(`/api/messages/${id}`, { method: 'DELETE' }, true);
+
+// --- Reconstruction du site (SEO pour les réseaux sociaux) ---
+export const deploySite = () => request<{ ok: true }>('/api/deploy', { method: 'POST' }, true);

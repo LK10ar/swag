@@ -41,3 +41,19 @@ export function btnVars(a: { buttonColor?: string; hoverColor?: string }): CSSPr
   }
   return s as CSSProperties;
 }
+
+/** N'autorise que http(s), mailto, tel, les ancres et les chemins relatifs dans les liens éditables */
+export function safeHref(href: string | undefined): string {
+  const h = (href || '').trim();
+  return /^(https?:\/\/|mailto:|tel:|#|\/)/i.test(h) ? h : '#';
+}
+
+/** "@pseudo" à partir d'un lien de profil (ex. https://www.instagram.com/swagtrickryan/) */
+export function handleFromUrl(url: string): string {
+  try {
+    const seg = new URL(url).pathname.split('/').filter(Boolean)[0];
+    return seg ? `@${seg}` : 'Instagram';
+  } catch {
+    return 'Instagram';
+  }
+}

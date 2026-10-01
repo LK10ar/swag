@@ -8,15 +8,9 @@ export type GalleryItem = {
   albumTitle: string;
 };
 
-/** Tous les médias, une photo par album à tour de rôle (les événements sont mélangés, l'ordre dans chaque album est respecté). */
+/** Tous les médias, rangés album par album, dans l'ordre choisi : les photos voisines restent côte à côte. */
 export function galleryItems(albums: Album[]): GalleryItem[] {
-  const out: GalleryItem[] = [];
-  const max = Math.max(0, ...albums.map((a) => a.photos.length));
-  for (let i = 0; i < max; i++) {
-    for (const a of albums) {
-      const p = a.photos[i];
-      if (p) out.push({ url: p.url, type: p.type, caption: p.caption || a.title, albumId: a._id, albumTitle: a.title });
-    }
-  }
-  return out;
+  return albums.flatMap((a) =>
+    a.photos.map((p) => ({ url: p.url, type: p.type, caption: p.caption || a.title, albumId: a._id, albumTitle: a.title })),
+  );
 }
