@@ -12,6 +12,7 @@ import LegalPage from './components/LegalPage';
 import ContactSection from './components/ContactSection';
 import Footer from './components/Footer';
 import ScrollTopButton from './components/ScrollTopButton';
+import SiteHead from './components/SiteHead';
 import Admin from './components/Admin';
 import { AlbumsProvider } from './lib/albums';
 import { SettingsProvider } from './lib/settings';
@@ -51,6 +52,7 @@ export default function App() {
 
   return (
     <SettingsProvider>
+    <SiteHead />
     <AlbumsProvider>
       {route === 'gallery' || route === 'legal' ? (
         <>
