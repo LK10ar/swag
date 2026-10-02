@@ -21,7 +21,7 @@ const decor = (id: string, color: string, size: number, x: number, y: number): D
 });
 
 export const DEFAULT_SETTINGS: SiteSettings = {
-  brand: { name: 'swagtrickryan', iconMode: 'icon', icon: 'camera', iconColor: '#39FF14', logoImage: '', favicon: '' },
+  brand: { name: 'swagtrickryan', iconMode: 'icon', icon: 'camera', iconColor: '#39FF14', logoImage: '', favicon: '', logoSize: 28, nameSize: 20, blend: true },
   theme: { font: 'Kanit' },
   nav: {
     items: [
@@ -35,9 +35,9 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   hero: {
     base: PHOTOS.heroBase,
     reveal: PHOTOS.heroReveal,
-    kicker: 'Rock · Hard Rock · Metal Photography',
-    tagline: '*Raw* energy. ~Sweat~. ^Distortion^.\nI freeze the chaos into frames that hit harder than the riff.',
-    buttonLabel: 'Start a project',
+    kicker: 'Rock · Hard Rock · Photographie metal',
+    tagline: '*Énergie* brute. ~Sueur~. ^Distorsion^.\nJe fige le chaos en images qui frappent plus fort que le riff.',
+    buttonLabel: 'Démarrer un projet',
     buttonHref: '#contact',
     title: {
       text: 'Swagtrickryan',
@@ -57,56 +57,56 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   },
   about: {
     image: PHOTOS.portraits.main,
-    heading: "I don't shoot *portraits*.\nI capture ~sonic violence~ in frames.",
+    heading: 'Je ne fais pas de *portraits*.\nJe capture la ~violence sonique~ en images.',
     paragraph:
-      "Twelve years in photo pits across Europe and Japan. From basement hardcore gigs to stadium metal festivals — I live for the three seconds between the riff and the chaos. My camera doesn't flinch when the mosh pit erupts. It leans in.",
-    touring: 'Currently touring with: DEADLOCK · ASHFALL · The Vulture Cult',
+      'Douze ans dans les fosses photo, en Europe et au Japon. Des concerts hardcore en sous-sol aux festivals metal dans les stades — je vis pour les trois secondes entre le riff et le chaos. Mon appareil ne bronche pas quand le pit explose. Il s’approche.',
+    touring: 'En tournée avec : DEADLOCK · ASHFALL · The Vulture Cult',
     stats: [
-      { value: '250+', label: 'Shows Shot', color: 'green' },
-      { value: '12', label: 'Years In Pit', color: 'orange' },
-      { value: '40+', label: 'Bands Covered', color: 'pink' },
-      { value: '8', label: 'Countries', color: 'blue' },
+      { value: '250+', label: 'Concerts photographiés', color: 'green' },
+      { value: '12', label: 'Années dans le pit', color: 'orange' },
+      { value: '40+', label: 'Groupes couverts', color: 'pink' },
+      { value: '8', label: 'Pays', color: 'blue' },
     ],
     decor: [decor('d1', '#39FF14', 96, 94, 5), decor('d2', '#FF10A0', 64, 3, 98)],
   },
   services: {
     kicker: '',
-    title: 'What I ^deliver^',
-    note: 'Every package includes full editing, online gallery, and commercial usage rights. No hidden fees.',
+    title: 'Ce que je ^propose^',
+    note: 'Chaque formule comprend la retouche complète, une galerie en ligne et les droits d’usage commercial. Aucun frais caché.',
     items: [
       {
         icon: 'aperture',
-        title: 'LIVE SHOW COVERAGE',
-        description: 'Full concert coverage from soundcheck to last encore. 200+ edited shots delivered in 48h.',
-        price: 'From €450',
+        title: 'COUVERTURE DE CONCERT',
+        description: 'Couverture complète du concert, des balances au dernier rappel. Plus de 200 photos retouchées livrées en 48 h.',
+        price: 'À partir de 450 €',
         accent: 'green',
       },
       {
         icon: 'disc',
-        title: 'ALBUM & PRESS KITS',
-        description: 'Studio and location shoots for album covers, press releases, and promo campaigns.',
-        price: 'From €800',
+        title: 'POCHETTES & DOSSIERS DE PRESSE',
+        description: 'Séances en studio ou en extérieur pour pochettes d’album, communiqués de presse et campagnes promo.',
+        price: 'À partir de 800 €',
         accent: 'orange',
       },
       {
         icon: 'video',
-        title: 'MUSIC VIDEOS',
-        description: 'Cinematic live sessions, lyric videos, and behind-the-scenes tour documentaries.',
-        price: 'From €2,500',
+        title: 'CLIPS VIDÉO',
+        description: 'Sessions live cinématographiques, lyric videos et documentaires de tournée en coulisses.',
+        price: 'À partir de 2 500 €',
         accent: 'pink',
       },
       {
         icon: 'zap',
-        title: 'FESTIVAL COVERAGE',
-        description: 'Multi-day festival documentation — stages, crowds, backstage, and artist portraits.',
-        price: 'Custom',
+        title: 'COUVERTURE DE FESTIVAL',
+        description: 'Reportage sur plusieurs jours — scènes, public, coulisses et portraits d’artistes.',
+        price: 'Sur devis',
         accent: 'blue',
       },
     ],
     decor: [],
   },
   marquee: {
-    label: 'Live · Loud · Unfiltered',
+    label: 'Live · Fort · Sans filtre',
     topRow: PHOTOS.marquee.topRow,
     bottomRow: PHOTOS.marquee.bottomRow,
   },
@@ -114,13 +114,20 @@ export const DEFAULT_SETTINGS: SiteSettings = {
     instagram: 'https://www.instagram.com/swagtrickryan/',
     email: '',
     intro:
-      "Booking a show, planning an album cover, or need a full tour documented? I'm available worldwide — just reach out.",
+      'Réserver un concert, préparer une pochette d’album ou documenter toute une tournée ? Je suis disponible partout — il suffit de me contacter.',
     kicker: '',
-    title: "Let's make *something* ~loud~.",
+    title: 'Faisons du *bruit* ~ensemble~.',
     buttonLabel: '',
+    ctaLabel: '',
+    nameLabel: '',
+    emailLabel: '',
+    messageLabel: '',
+    sentTitle: '',
+    sentText: '',
     decor: [],
   },
-  footer: { tagline: 'Rock & Hard Rock Photography', text: '', showNotice: true },
+  extraDecor: { projects: [], gallery: [], marquee: [], footer: [] },
+  footer: { tagline: 'Photographie rock & hard rock', text: '', showNotice: true },
   seo: {
     title: 'swagtrickryan — Rock & Hard Rock Photography',
     description:
@@ -133,7 +140,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
     twitter: '',
     schema: true,
   },
-  i18n: { defaultLang: 'fr', enabled: ['fr'], translations: {} },
+  i18n: { defaultLang: 'fr', enabled: ['fr'], translations: {}, sources: {} },
 };
 
 /* ------------------------------ fusion profonde ------------------------------ */
@@ -190,6 +197,12 @@ function readCache(): SiteSettings {
   }
 }
 
+export type PreviewApi = {
+  selected: { area: string; id: string } | null;
+  select: (area: string | null, id?: string) => void;
+  update: (area: string, id: string, patch: Record<string, unknown>) => void;
+};
+
 type Ctx = {
   settings: SiteSettings; // déjà traduit dans la langue courante
   base: SiteSettings; // dans la langue par défaut
@@ -197,6 +210,8 @@ type Ctx = {
   langs: LangCode[];
   setLang: (l: LangCode) => void;
   t: (key: string) => string;
+  /** non nul seulement dans l'aperçu en direct de l'admin */
+  preview: PreviewApi | null;
 };
 
 const defaultCtx: Ctx = {
@@ -206,13 +221,19 @@ const defaultCtx: Ctx = {
   langs: ['fr'],
   setLang: () => {},
   t: (k) => translate('fr', k),
+  preview: null,
 };
 
 const SettingsContext = createContext<Ctx>(defaultCtx);
 
-export function SettingsProvider({ children }: { children: ReactNode }) {
+const toAdmin = (msg: Record<string, unknown>) =>
+  window.parent.postMessage({ source: 'swag-preview', ...msg }, window.location.origin);
+
+export function SettingsProvider({ children, preview = false }: { children: ReactNode; preview?: boolean }) {
   // Le cache évite de voir les valeurs par défaut clignoter à chaque visite
-  const [base, setBase] = useState<SiteSettings>(readCache);
+  const [fetched, setFetched] = useState<SiteSettings>(readCache);
+  const [override, setOverride] = useState<SiteSettings | null>(null); // aperçu en direct
+  const [selected, setSelected] = useState<{ area: string; id: string } | null>(null);
   const [chosen, setChosen] = useState<LangCode | null>(() => {
     try {
       return localStorage.getItem(LANG_KEY) as LangCode | null;
@@ -220,11 +241,12 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       return null;
     }
   });
+  const base = override ?? fetched;
 
   useEffect(() => {
     fetchSettings()
       .then((data) => {
-        setBase(mergeSettings(data));
+        setFetched(mergeSettings(data));
         try {
           localStorage.setItem(CACHE_KEY, JSON.stringify(data));
         } catch {
@@ -234,13 +256,32 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       .catch(() => {});
   }, []);
 
+  // Aperçu en direct : l'admin (fenêtre parente) envoie les réglages en cours de modification
+  useEffect(() => {
+    if (!preview) return;
+    const onMsg = (e: MessageEvent) => {
+      if (e.origin !== window.location.origin || e.data?.source !== 'swag-admin') return;
+      const d = e.data;
+      if (d.type === 'settings') setOverride(mergeSettings(d.settings));
+      else if (d.type === 'select') setSelected(d.selected ?? null);
+      else if (d.type === 'scroll') {
+        const el = d.id && d.id !== 'top' ? document.getElementById(d.id) : null;
+        window.scrollTo({ top: el ? el.getBoundingClientRect().top + window.scrollY - 10 : 0, behavior: 'smooth' });
+      }
+    };
+    window.addEventListener('message', onMsg);
+    toAdmin({ type: 'ready' });
+    return () => window.removeEventListener('message', onMsg);
+  }, [preview]);
+
   const langs = useMemo(() => enabledLangs(base), [base]);
 
   const lang: LangCode = useMemo(() => {
+    if (preview) return base.i18n.defaultLang;
     if (chosen && langs.includes(chosen)) return chosen;
     const browser = (navigator.language || '').slice(0, 2) as LangCode;
     return langs.includes(browser) ? browser : base.i18n.defaultLang;
-  }, [chosen, langs, base.i18n.defaultLang]);
+  }, [preview, chosen, langs, base.i18n.defaultLang]);
 
   const settings = useMemo(() => {
     if (lang === base.i18n.defaultLang) return base;
@@ -264,7 +305,26 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     document.documentElement.style.setProperty('--font-site', `'${base.theme.font}'`);
   }, [base.theme.font]);
 
-  const value = useMemo(() => ({ settings, base, lang, langs, setLang, t }), [settings, base, lang, langs, setLang, t]);
+  const previewApi = useMemo<PreviewApi | null>(
+    () =>
+      preview
+        ? {
+            selected,
+            select: (area, id) => {
+              const next = area && id ? { area, id } : null;
+              setSelected(next);
+              toAdmin({ type: 'select', selected: next });
+            },
+            update: (area, id, patch) => toAdmin({ type: 'decor-update', area, id, patch }),
+          }
+        : null,
+    [preview, selected],
+  );
+
+  const value = useMemo(
+    () => ({ settings, base, lang, langs, setLang, t, preview: previewApi }),
+    [settings, base, lang, langs, setLang, t, previewApi],
+  );
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>;
 }
 

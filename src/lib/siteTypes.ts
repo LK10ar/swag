@@ -16,6 +16,8 @@ export type Decor = {
   glow: boolean;
   float: boolean;
   image: string; // pour le type "png"
+  layer?: 'back' | 'front'; // derrière ou devant le texte
+  m?: { x?: number; y?: number; size?: number; hide?: boolean }; // réglages propres au mobile
 };
 
 export type Stat = { value: string; label: string; color: AccentColor };
@@ -47,6 +49,9 @@ export type SiteSettings = {
     iconColor: string;
     logoImage: string;
     favicon: string;
+    logoSize: number; // px
+    nameSize: number; // px
+    blend: boolean; // adapte la couleur du logo au fond
   };
   theme: { font: string };
   nav: { items: NavItem[] };
@@ -70,8 +75,15 @@ export type SiteSettings = {
     kicker: string;
     title: string;
     buttonLabel: string;
+    ctaLabel: string;
+    nameLabel: string;
+    emailLabel: string;
+    messageLabel: string;
+    sentTitle: string;
+    sentText: string;
     decor: Decor[];
   };
+  extraDecor: { projects: Decor[]; gallery: Decor[]; marquee: Decor[]; footer: Decor[] };
   footer: { tagline: string; text: string; showNotice: boolean };
   seo: {
     title: string;
@@ -88,5 +100,7 @@ export type SiteSettings = {
     defaultLang: LangCode;
     enabled: LangCode[];
     translations: Partial<Record<LangCode, Record<string, unknown>>>;
+    /** texte d'origine au moment de la traduction (pour repérer les traductions périmées) */
+    sources: Partial<Record<LangCode, Record<string, unknown>>>;
   };
 };
