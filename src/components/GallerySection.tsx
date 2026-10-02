@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import Lightbox from './Lightbox';
 import MediaThumb from './MediaThumb';
+import DecorLayer from './DecorLayer';
 import { useAlbums } from '@/lib/albums';
 import { galleryItems } from '@/lib/gallery';
 import { useSettings } from '@/lib/settings';
@@ -12,7 +13,7 @@ const PREVIEW = 12;
 
 export default function GallerySection() {
   const { albums } = useAlbums();
-  const { t } = useSettings();
+  const { t, settings } = useSettings();
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   const all = useMemo(() => galleryItems(albums), [albums]);
@@ -21,7 +22,8 @@ export default function GallerySection() {
   if (photos.length === 0) return null;
 
   return (
-    <section id="gallery" className="relative bg-[#0C0C0C] py-24 md:py-36">
+    <section id="gallery" className="relative overflow-x-clip bg-[#0C0C0C] py-24 md:py-36">
+      <DecorLayer items={settings.extraDecor.gallery} area="gallery" />
       <div className="mx-auto max-w-7xl px-3 sm:px-5 md:px-10">
         <div className="mb-8 px-2 md:mb-12 md:px-0">
           <span className="text-xs font-medium uppercase tracking-[0.25em] text-white/50">{t('gallery.kicker')}</span>

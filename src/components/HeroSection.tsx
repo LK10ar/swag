@@ -18,9 +18,7 @@ export default function HeroSection() {
     <section className="relative min-h-[100svh] w-full overflow-hidden bg-[#0C0C0C]">
       <SpotlightReveal baseImage={h.base} revealImage={h.reveal} radius={280} className="absolute inset-0" />
 
-      <div className="pointer-events-none absolute inset-0 z-[5]">
-        <DecorLayer items={h.decor} />
-      </div>
+      <DecorLayer items={h.decor} area="hero" />
 
       <div className="pointer-events-none absolute inset-0 z-10 flex items-end justify-center">
         <Magnet padding={300} strength={10} className="w-full">

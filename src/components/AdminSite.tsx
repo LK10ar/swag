@@ -13,10 +13,11 @@ import { ACCENT_MAP, type AccentColor } from '@/lib/photos';
 import { FONTS, loadFont } from '@/lib/fonts';
 import { ICON_NAMES } from '@/lib/icons';
 import { LANGS, translate, type LangCode } from '@/lib/i18n';
-import { collectTexts, getPath, setPath } from '@/lib/translatable';
+import { collectTexts, getPath, setPath, type TextField } from '@/lib/translatable';
 import type { Decor, DecorShape, ServiceItem } from '@/lib/siteTypes';
 import DecorLayer from './DecorLayer';
 import HeroTitleText from './HeroTitleText';
+import AdminPlacement from './AdminPlacement';
 
 const INPUT =
   'w-full rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/30 focus:border-neon-green focus:outline-none';
@@ -361,91 +362,11 @@ function ItemBar({ i, n, onMove, onRemove }: { i: number; n: number; onMove: (d:
   );
 }
 
-/* --------------------------- Formes décoratives --------------------------- */
-
-const SHAPES: [DecorShape, string][] = [
-  ['circle', 'Cercle'],
-  ['square', 'Carré'],
-  ['triangle', 'Triangle'],
-  ['diamond', 'Losange'],
-  ['star', 'Étoile'],
-  ['heart', 'Cœur'],
-  ['png', 'Image PNG (mon design)'],
-];
-
-const newDecor = (): Decor => ({
-  id: `d${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`,
-  shape: 'circle',
-  color: '#FF10A0',
-  size: 80,
-  x: 50,
-  y: 50,
-  rotate: 0,
-  opacity: 70,
-  filled: false,
-  glow: true,
-  float: false,
-  image: '',
-});
-
-function DecorEditor({ path, hint }: { path: string; hint?: string }) {
-  const { items, add, remove } = useList<Decor>(path);
+function PlaceHint({ text }: { text?: string }) {
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-white/10 bg-black/20 p-4">
-      <div>
-        <h3 className="text-sm font-bold text-white">Formes décoratives</h3>
-        <p className="text-xs text-white/40">
-          {hint ?? 'Cercles, carrés, étoiles… ou ton propre design en PNG, placés où tu veux (en % de la zone).'}
-        </p>
-      </div>
-
-      <div className="relative h-40 overflow-hidden rounded-lg border border-white/10 bg-[#0C0C0C]">
-        <DecorLayer items={items} />
-        {items.length === 0 && <p className="absolute inset-0 flex items-center justify-center text-xs text-white/30">Aperçu</p>}
-      </div>
-
-      {items.map((d, i) => (
-        <details key={d.id} className="rounded-lg border border-white/10 bg-white/5 p-3">
-          <summary className="flex cursor-pointer items-center gap-3 text-sm text-white">
-            <span className="h-4 w-4 flex-shrink-0 rounded-full border border-white/30" style={{ background: d.color }} />
-            {SHAPES.find(([v]) => v === d.shape)?.[1] ?? d.shape} · {d.size}px
-            <button
-              type="button"
-              className="ml-auto text-xs text-neon-pink"
-              onClick={(e) => {
-                e.preventDefault();
-                remove(i);
-              }}
-            >
-              Supprimer
-            </button>
-          </summary>
-          <div className="mt-4 grid gap-3 md:grid-cols-2">
-            <SelF label="Forme" path={`${path}.${i}.shape`} options={SHAPES} />
-            <ColorF label="Couleur" path={`${path}.${i}.color`} />
-            <NumF label="Taille" path={`${path}.${i}.size`} min={10} max={500} />
-            <NumF label="Rotation" path={`${path}.${i}.rotate`} min={-180} max={180} />
-            <NumF label="Position X (%)" path={`${path}.${i}.x`} min={-20} max={120} />
-            <NumF label="Position Y (%)" path={`${path}.${i}.y`} min={-20} max={120} />
-            <NumF label="Opacité" path={`${path}.${i}.opacity`} min={5} max={100} />
-            <div className="flex flex-col gap-2">
-              <CheckF label="Forme pleine" path={`${path}.${i}.filled`} />
-              <CheckF label="Lueur néon" path={`${path}.${i}.glow`} />
-              <CheckF label="Flotte doucement" path={`${path}.${i}.float`} />
-            </div>
-            {d.shape === 'png' && (
-              <div className="md:col-span-2">
-                <ImgF label="Ton design (PNG transparent conseillé)" path={`${path}.${i}.image`} />
-              </div>
-            )}
-          </div>
-        </details>
-      ))}
-
-      <button type="button" className={`${BTN} self-start`} onClick={() => add(newDecor())}>
-        <Plus size={14} /> Ajouter une forme
-      </button>
-    </div>
+    <p className="rounded-lg border border-dashed border-white/15 p-3 text-xs text-white/50">
+      {text ?? 'Pour ajouter des formes, cercles ou ton propre design PNG et les placer visuellement : onglet « Placement ».'}
+    </p>
   );
 }
 
@@ -473,6 +394,13 @@ function IdentityPanel() {
           </div>
         )}
         {s.brand.iconMode === 'image' && <ImgF label="Logo (PNG / SVG)" path="brand.logoImage" />}
+        {s.brand.iconMode !== 'none' && <NumF label="Taille du logo (px)" path="brand.logoSize" min={16} max={160} />}
+        <NumF label="Taille du nom (px)" path="brand.nameSize" min={12} max={48} />
+        <CheckF
+          label="Adapter automatiquement la couleur du logo au fond"
+          path="brand.blend"
+          hint="Décoche si ton logo en image change de couleurs bizarrement selon la photo derrière."
+        />
       </Section>
 
       <Section title="Favicon" hint="La petite icône de l'onglet du navigateur. PNG carré (512×512 conseillé), SVG ou ICO.">
@@ -631,7 +559,7 @@ function HeroPanel() {
       </Section>
 
       <Section title="Décorations du header">
-        <DecorEditor path="hero.decor" />
+        <PlaceHint />
       </Section>
     </>
   );
@@ -689,7 +617,7 @@ function AboutPanel() {
       </Section>
 
       <Section title="Cercles & formes autour de la photo" hint="Les positions sont en % de la photo : 0 = bord gauche/haut, 100 = bord droit/bas.">
-        <DecorEditor path="about.decor" />
+        <PlaceHint />
       </Section>
     </>
   );
@@ -733,7 +661,7 @@ function ServicesPanel() {
       </Section>
 
       <Section title="Décorations de la section">
-        <DecorEditor path="services.decor" />
+        <PlaceHint />
       </Section>
     </>
   );
@@ -757,7 +685,17 @@ function ContactPanel() {
         <TextF label="Sur-titre (vide = masqué)" path="contact.kicker" />
         <TextF label="Titre" path="contact.title" hint="Couleurs : *vert*, ~rose~, ^orange^." />
         <TextF label="Texte d'introduction" path="contact.intro" rows={3} />
+        <TextF label="Texte du bouton rond (vide = « Contact »)" path="contact.ctaLabel" />
         <TextF label="Texte du bouton d'envoi (vide = « Envoyer »)" path="contact.buttonLabel" />
+      </Section>
+      <Section title="Formulaire" hint="Vide = texte par défaut, déjà traduit dans toutes les langues.">
+        <div className="grid gap-3 md:grid-cols-3">
+          <TextF label="Champ nom" path="contact.nameLabel" />
+          <TextF label="Champ email" path="contact.emailLabel" />
+          <TextF label="Champ message" path="contact.messageLabel" />
+        </div>
+        <TextF label="Titre après envoi" path="contact.sentTitle" />
+        <TextF label="Texte après envoi" path="contact.sentText" rows={2} />
       </Section>
       <Section title="Coordonnées">
         <TextF label="Lien Instagram (vide = masqué)" path="contact.instagram" placeholder="https://www.instagram.com/…" />
@@ -767,9 +705,6 @@ function ContactPanel() {
         <TextF label="Slogan (bandeau défilant)" path="footer.tagline" />
         <TextF label="Texte libre (vide = masqué)" path="footer.text" rows={2} />
         <CheckF label="Afficher l'encart « photos protégées par le droit d'auteur »" path="footer.showNotice" />
-      </Section>
-      <Section title="Décorations de la section contact">
-        <DecorEditor path="contact.decor" />
       </Section>
     </>
   );
@@ -853,28 +788,38 @@ function LangPanel() {
   };
 
   const fields = collectTexts(s);
-  const tr = (path: string[]) => String(getPath(s.i18n.translations?.[edit], path) ?? '');
+  const tr = (lang: LangCode, path: string[]) => String(getPath(s.i18n.translations?.[lang], path) ?? '');
+  const src = (lang: LangCode, path: string[]) => String(getPath(s.i18n.sources?.[lang], path) ?? '');
+  const missing = (lang: LangCode, f: TextField) => !tr(lang, f.path).trim();
+  const stale = (lang: LangCode, f: TextField) => !missing(lang, f) && !!src(lang, f.path) && src(lang, f.path) !== f.value;
+  const todoCount = (lang: LangCode) => fields.filter((f) => missing(lang, f) || stale(lang, f)).length;
 
-  async function auto(onlyEmpty: boolean) {
+  async function auto(langs: LangCode[], all: boolean) {
     setBusy(true);
     setNote('');
     try {
-      const todo = fields.filter((f) => !onlyEmpty || !tr(f.path).trim());
-      let done = 0;
-      for (let i = 0; i < todo.length; i += 20) {
-        const batch = todo.slice(i, i + 20);
-        const { texts } = await translateTexts(def, edit, batch.map((b) => b.value));
-        batch.forEach((b, k) => set(`i18n.translations.${edit}.${b.path.join('.')}`, texts[k]));
-        done += batch.length;
-        setNote(`Traduction… ${done}/${todo.length}`);
+      for (const lang of langs) {
+        const todo = fields.filter((f) => all || missing(lang, f) || stale(lang, f));
+        for (let i = 0; i < todo.length; i += 15) {
+          const batch = todo.slice(i, i + 15);
+          setNote(`Traduction en ${lang.toUpperCase()}… ${Math.min(i + 15, todo.length)}/${todo.length}`);
+          // "auto" : la langue d'origine de chaque texte est détectée (utile si tes textes sont mélangés)
+          const { texts } = await translateTexts('auto', lang, batch.map((b) => b.value));
+          batch.forEach((b, k) => {
+            set(`i18n.translations.${lang}.${b.path.join('.')}`, texts[k]);
+            set(`i18n.sources.${lang}.${b.path.join('.')}`, b.value);
+          });
+        }
       }
-      setNote(todo.length ? 'Traduction terminée. Relis les textes, corrige si besoin, puis enregistre.' : 'Rien à traduire : tout est déjà rempli.');
+      setNote('Traduction terminée. Relis les textes, corrige si besoin, puis clique sur « Enregistrer les modifications ».');
     } catch (e) {
       onError(e);
     } finally {
       setBusy(false);
     }
   }
+
+  const activeOthers = others.filter((l) => enabled.has(l.code)).map((l) => l.code);
 
   return (
     <>
@@ -894,15 +839,27 @@ function LangPanel() {
             <label key={l.code} className="flex items-center gap-2 text-sm text-white/80">
               <input type="checkbox" checked={enabled.has(l.code)} onChange={(e) => toggle(l.code, e.target.checked)} className="h-4 w-4 accent-[#39FF14]" />
               {l.label}
+              {enabled.has(l.code) && todoCount(l.code) > 0 && (
+                <span className="rounded-full bg-orange-500/20 px-2 py-0.5 text-[11px] text-orange-300">{todoCount(l.code)} à traduire</span>
+              )}
             </label>
           ))}
         </div>
         <p className="text-xs text-white/40">
-          Les textes fixes du site (menu, formulaire, boutons, mentions) sont déjà traduits. Seule la page « Mentions légales » reste en français.
+          Les textes fixes du site (menu, formulaire, boutons, galerie, pied de page) sont déjà traduits. Tes propres textes (accueil, à propos, services, contact…)
+          se traduisent ci-dessous. Seule la page « Mentions légales » reste en français.
         </p>
+        {activeOthers.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            <button type="button" className={BTN_PRIMARY} disabled={busy} onClick={() => auto(activeOthers, false)}>
+              <Wand2 size={16} /> Tout traduire dans toutes les langues activées
+            </button>
+          </div>
+        )}
+        {note && <p className="text-sm text-neon-green">{note}</p>}
       </Section>
 
-      <Section title="Traduire tes textes" hint="Choisis une langue, lance la traduction automatique, puis corrige ce que tu veux à la main.">
+      <Section title="Vérifier et corriger les traductions" hint="Quand tu modifies un texte, sa traduction est marquée « à retraduire ». Une traduction que tu corriges à la main est considérée comme à jour.">
         <div className="flex flex-wrap items-center gap-2">
           {others.map((l) => (
             <button
@@ -918,29 +875,32 @@ function LangPanel() {
           ))}
         </div>
         <div className="flex flex-wrap gap-2">
-          <button type="button" className={BTN_PRIMARY} disabled={busy} onClick={() => auto(true)}>
-            <Wand2 size={16} /> Traduire les champs vides
+          <button type="button" className={BTN} disabled={busy} onClick={() => auto([edit], false)}>
+            <Wand2 size={16} /> Traduire ce qui manque ou a changé ({todoCount(edit)})
           </button>
-          <button type="button" className={BTN} disabled={busy} onClick={() => confirm('Remplacer toutes les traductions de cette langue ?') && auto(false)}>
+          <button type="button" className={BTN} disabled={busy} onClick={() => confirm('Remplacer toutes les traductions de cette langue ?') && auto([edit], true)}>
             Tout retraduire
           </button>
         </div>
-        {note && <p className="text-sm text-neon-green">{note}</p>}
-        <p className="text-xs text-white/40">
-          La traduction automatique (MyMemory) est gratuite mais limitée par jour, et peut abîmer les marques de couleur *, ~, ^ : vérifie les titres.
-        </p>
 
         <div className="flex flex-col gap-3">
           {fields.map((f) => (
             <div key={f.path.join('.')} className="rounded-lg border border-white/10 bg-black/20 p-3">
-              <p className="text-xs font-medium uppercase tracking-wider text-white/40">{f.label}</p>
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-xs font-medium uppercase tracking-wider text-white/40">{f.label}</p>
+                {missing(edit, f) && <span className="rounded-full bg-orange-500/20 px-2 py-0.5 text-[11px] text-orange-300">non traduit</span>}
+                {stale(edit, f) && <span className="rounded-full bg-yellow-500/20 px-2 py-0.5 text-[11px] text-yellow-300">à retraduire</span>}
+              </div>
               <p className="mt-1 line-clamp-2 text-sm text-white/50">{f.value}</p>
               <textarea
                 rows={f.value.length > 90 ? 3 : 1}
                 className={`${INPUT} mt-2`}
                 placeholder={`Traduction (${edit})`}
-                value={tr(f.path)}
-                onChange={(e) => set(`i18n.translations.${edit}.${f.path.join('.')}`, e.target.value)}
+                value={tr(edit, f.path)}
+                onChange={(e) => {
+                  set(`i18n.translations.${edit}.${f.path.join('.')}`, e.target.value);
+                  set(`i18n.sources.${edit}.${f.path.join('.')}`, f.value);
+                }}
               />
             </div>
           ))}
@@ -948,6 +908,41 @@ function LangPanel() {
       </Section>
     </>
   );
+}
+
+/** Traduit (dans toutes les langues activées) les textes sans traduction ou modifiés depuis la dernière traduction. */
+async function syncTranslations(cur: SiteSettings, progress: (m: string) => void): Promise<{ next: SiteSettings; failed: boolean }> {
+  const next = structuredClone(cur);
+  const set = (path: string, v: unknown) => setPath(next as unknown as Record<string, unknown>, path.split('.'), v);
+  const def = next.i18n.defaultLang;
+  const langs = next.i18n.enabled.filter((l) => l !== def);
+  const fields = collectTexts(next);
+  let failed = false;
+
+  for (const lang of langs) {
+    const todo: TextField[] = [];
+    for (const f of fields) {
+      const tr = String(getPath(next.i18n.translations?.[lang], f.path) ?? '').trim();
+      const src = String(getPath(next.i18n.sources?.[lang], f.path) ?? '');
+      if (!tr) todo.push(f);
+      else if (!src) set(`i18n.sources.${lang}.${f.path.join('.')}`, f.value); // ancienne traduction : on la garde telle quelle
+      else if (src !== f.value) todo.push(f);
+    }
+    for (let i = 0; i < todo.length && !failed; i += 15) {
+      const batch = todo.slice(i, i + 15);
+      progress(`Traduction en ${lang.toUpperCase()}… ${Math.min(i + 15, todo.length)}/${todo.length}`);
+      try {
+        const { texts } = await translateTexts('auto', lang, batch.map((b) => b.value));
+        batch.forEach((b, k) => {
+          set(`i18n.translations.${lang}.${b.path.join('.')}`, texts[k]);
+          set(`i18n.sources.${lang}.${b.path.join('.')}`, b.value);
+        });
+      } catch {
+        failed = true;
+      }
+    }
+  }
+  return { next, failed };
 }
 
 /* ------------------------------ Page « Site » ------------------------------ */
@@ -960,6 +955,7 @@ const TABS = [
   ['services', 'Services'],
   ['carousel', 'Carrousel'],
   ['contact', 'Contact & pied'],
+  ['place', 'Placement'],
   ['seo', 'SEO'],
   ['langs', 'Langues'],
 ] as const;
@@ -970,6 +966,7 @@ export default function AdminSite({ onError }: { onError: OnError }) {
   const [tab, setTab] = useState<TabId>('identity');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [note, setNote] = useState('');
 
   useEffect(() => {
     fetchSettings()
@@ -995,11 +992,19 @@ export default function AdminSite({ onError }: { onError: OnError }) {
   async function save() {
     if (!s) return;
     setSaving(true);
+    setNote('');
     try {
-      setS(mergeSettings(await saveSettings(s)));
+      const { next, failed } = await syncTranslations(s, setNote);
+      setS(mergeSettings(await saveSettings(next)));
       setSaved(true);
+      setNote(
+        failed
+          ? 'Enregistré, mais la traduction automatique a été interrompue (limite du service ?). Réessaie plus tard depuis l’onglet Langues.'
+          : '',
+      );
     } catch (e) {
       onError(e);
+      setNote('');
     } finally {
       setSaving(false);
     }
@@ -1030,11 +1035,13 @@ export default function AdminSite({ onError }: { onError: OnError }) {
         {tab === 'services' && <ServicesPanel />}
         {tab === 'carousel' && <CarouselPanel />}
         {tab === 'contact' && <ContactPanel />}
+        {tab === 'place' && <AdminPlacement s={s} set={set} onError={onError} />}
         {tab === 'seo' && <SeoPanel />}
         {tab === 'langs' && <LangPanel />}
 
         <div className="sticky bottom-4 z-20 flex items-center justify-end gap-3">
-          {saved && <span className="rounded-lg bg-black/80 px-3 py-2 text-sm text-neon-green">Enregistré ✓</span>}
+          {note && <span className="max-w-xs rounded-lg bg-black/80 px-3 py-2 text-xs text-white/80">{note}</span>}
+          {saved && !note && <span className="rounded-lg bg-black/80 px-3 py-2 text-sm text-neon-green">Enregistré ✓</span>}
           <button className={BTN_PRIMARY} disabled={saving} onClick={save}>
             {saving ? 'Enregistrement…' : 'Enregistrer les modifications'}
           </button>

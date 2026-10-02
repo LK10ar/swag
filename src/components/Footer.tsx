@@ -1,11 +1,12 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { animate, motion, useMotionValue, useReducedMotion, useSpring, useTransform } from 'framer-motion';
 import { ArrowUp, Copyright, Instagram, Mail } from 'lucide-react';
 import Brand from './Brand';
+import DecorLayer from './DecorLayer';
 import LangSwitch from './LangSwitch';
 import { useSettings } from '@/lib/settings';
 import { NAV_TARGETS } from '@/lib/nav';
-import { rgba, heroFontSize } from '@/lib/hero';
+import { rgba } from '@/lib/hero';
 import { handleFromUrl, safeHref } from '@/lib/helpers';
 
 /* Cube filaire qui tourne en 3D */
@@ -67,6 +68,30 @@ export default function Footer() {
   const name = settings.brand.name;
   const navItems = settings.nav.items.filter((i) => i.visible);
 
+  // Le nom s'adapte exactement à la largeur disponible (jamais coupé, toujours centré)
+  const fitRef = useRef<HTMLDivElement>(null);
+  const [fontPx, setFontPx] = useState(48);
+  useLayoutEffect(() => {
+    const box = fitRef.current;
+    if (!box) return;
+    const measure = () => {
+      const probe = document.createElement('span');
+      probe.style.cssText =
+        'position:absolute;visibility:hidden;white-space:nowrap;font-weight:900;text-transform:uppercase;letter-spacing:-0.025em;line-height:1;font-size:100px;';
+      probe.style.fontFamily = getComputedStyle(box).fontFamily;
+      probe.textContent = name;
+      document.body.appendChild(probe);
+      const w = probe.getBoundingClientRect().width;
+      probe.remove();
+      if (w > 0) setFontPx(Math.max(14, Math.min((box.clientWidth / w) * 100 * 0.94, 280)));
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(box);
+    document.fonts?.ready.then(measure);
+    return () => ro.disconnect();
+  }, [name]);
+
   // Inclinaison 3D du nom : suit la souris (ordinateur) ou se balance tout seul (mobile)
   const mx = useMotionValue(0);
   const my = useMotionValue(0);
@@ -113,7 +138,7 @@ export default function Footer() {
   const linkCls = 'text-sm text-white/60 transition-colors hover:text-neon-green';
 
   return (
-    <footer ref={ref} onPointerMove={onMove} onPointerLeave={onLeave} className="relative overflow-hidden bg-[#0C0C0C] pt-20 md:pt-28">
+    <footer id="footer" ref={ref} onPointerMove={onMove} onPointerLeave={onLeave} className="relative overflow-hidden bg-[#0C0C0C] pt-20 md:pt-28">
       {/* Décor de fond : lueurs + sol en perspective */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0">
         <motion.div
@@ -141,6 +166,7 @@ export default function Footer() {
         </div>
       </div>
 
+      <DecorLayer items={settings.extraDecor.footer} area="footer" />
       <Cube size={64} color="#39FF14" className="left-[6%] top-28 hidden sm:block" duration={22} still={reduced} />
       <Cube size={44} color="#FF10A0" className="right-[8%] top-44" duration={18} still={reduced} />
       <Cube size={90} color="#00F0FF" className="bottom-24 right-[14%] hidden md:block" duration={28} still={reduced} />
@@ -162,39 +188,40 @@ export default function Footer() {
 
       {/* Nom en 3D */}
       <div className="relative mx-auto max-w-7xl px-4 py-16 md:px-10 md:py-24" style={{ perspective: 1000 }}>
-        <motion.div
-          role="img"
-          aria-label={name}
-          className="relative mx-auto w-full select-none text-center font-black uppercase leading-none tracking-tight"
-          style={{
-            rotateX: reduced ? 0 : rotateX,
-            rotateY: reduced ? 0 : rotateY,
-            transformStyle: 'preserve-3d',
-            fontSize: heroFontSize(name, 92),
-            willChange: 'transform',
-          }}
-        >
-          {Array.from({ length: LAYERS }, (_, i) => {
-            const depth = LAYERS - 1 - i; // 0 = face avant
-            return (
-              <span
-                key={i}
-                aria-hidden="true"
-                className="block whitespace-nowrap"
-                style={{
-                  position: depth === 0 ? 'relative' : 'absolute',
-                  inset: depth === 0 ? undefined : 0,
-                  transform: `translateZ(${-depth * 9}px)`,
-                  color: depth === 0 ? '#F4F1E8' : depth % 2 ? '#FF10A0' : '#8a0a5c',
-                  opacity: depth === 0 ? 1 : Math.max(0.12, 0.8 - depth * 0.09),
-                  textShadow: depth === 0 ? '0 0 30px rgba(57,255,20,0.35)' : undefined,
-                }}
-              >
-                {name}
-              </span>
-            );
-          })}
-        </motion.div>
+        <div ref={fitRef} className="w-full">
+          <motion.div
+            role="img"
+            aria-label={name}
+            className="mx-auto grid w-full select-none justify-items-center font-black uppercase leading-none tracking-tight"
+            style={{
+              rotateX: reduced ? 0 : rotateX,
+              rotateY: reduced ? 0 : rotateY,
+              transformStyle: 'preserve-3d',
+              fontSize: fontPx,
+              willChange: 'transform',
+            }}
+          >
+            {Array.from({ length: LAYERS }, (_, i) => {
+              const depth = LAYERS - 1 - i; // 0 = face avant
+              return (
+                <span
+                  key={i}
+                  aria-hidden="true"
+                  className="whitespace-nowrap"
+                  style={{
+                    gridArea: '1 / 1',
+                    transform: `translateZ(${-depth * 9}px)`,
+                    color: depth === 0 ? '#F4F1E8' : depth % 2 ? '#FF10A0' : '#8a0a5c',
+                    opacity: depth === 0 ? 1 : Math.max(0.12, 0.8 - depth * 0.09),
+                    textShadow: depth === 0 ? '0 0 30px rgba(57,255,20,0.35)' : undefined,
+                  }}
+                >
+                  {name}
+                </span>
+              );
+            })}
+          </motion.div>
+        </div>
       </div>
 
       {/* Liens */}

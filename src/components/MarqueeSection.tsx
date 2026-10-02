@@ -1,4 +1,5 @@
 import { ParallaxRow } from './FadeIn';
+import DecorLayer from './DecorLayer';
 import { useSettings } from '@/lib/settings';
 
 function PhotoCard({ src, alt }: { src: string; alt: string }) {
@@ -26,7 +27,8 @@ export default function MarqueeSection() {
   if (top.length === 0 && bottom.length === 0) return null;
 
   return (
-    <section className="relative overflow-x-clip bg-[#0C0C0C] py-16 md:py-32">
+    <section id="marquee" className="relative overflow-x-clip bg-[#0C0C0C] py-16 md:py-32">
+      <DecorLayer items={settings.extraDecor.marquee} area="marquee" />
       <div className="mb-10 px-5 md:px-10">
         <div className="flex items-center gap-3">
           <div className="h-px flex-1 bg-gradient-to-r from-neon-green/60 to-transparent" />

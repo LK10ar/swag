@@ -3,6 +3,7 @@ import { AnimatePresence, motion, useScroll, useTransform, type MotionValue } fr
 import FadeIn from './FadeIn';
 import LiveProjectButton from './LiveProjectButton';
 import AlbumViewer from './AlbumViewer';
+import DecorLayer from './DecorLayer';
 import { useAlbums } from '@/lib/albums';
 import { useSettings } from '@/lib/settings';
 import type { Album } from '@/lib/api';
@@ -110,6 +111,7 @@ function ProjectCard({
 
 export default function ProjectsSection() {
   const { albums, status } = useAlbums();
+  const { extraDecor } = useSettings().settings;
   const { t } = useSettings();
   const sectionRef = useRef<HTMLElement>(null);
   const [openId, setOpenId] = useState<string | null>(null);
@@ -124,6 +126,7 @@ export default function ProjectsSection() {
       ref={sectionRef}
       className="relative z-10 -mt-10 rounded-t-[40px] bg-[#0C0C0C] px-5 pb-24 sm:-mt-12 sm:rounded-t-[50px] sm:px-8 md:-mt-14 md:rounded-t-[60px] md:px-10 md:pb-32"
     >
+      <DecorLayer items={extraDecor.projects} area="projects" />
       <div className="flex flex-col items-center py-20 sm:py-24 md:py-32">
         <FadeIn y={40} className="w-full">
           <h2

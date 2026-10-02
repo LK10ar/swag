@@ -15,7 +15,7 @@ export default function Navbar() {
 
   return (
     <>
-      <div className="fixed left-0 top-6 z-50 md:top-8" style={{ mixBlendMode: 'difference' }}>
+      <div className="fixed left-0 top-6 z-50 md:top-8" style={{ mixBlendMode: settings.brand.blend ? 'difference' : 'normal' }}>
         <a href="#" className="flex items-center pl-5 md:pl-10" aria-label={settings.brand.name}>
           <Brand />
         </a>

@@ -24,7 +24,7 @@ export default function AboutSection() {
                   <Brand size="footer" />
                 </div>
               </div>
-              <DecorLayer items={a.decor} />
+              <DecorLayer items={a.decor} area="about" />
             </div>
           )}
 

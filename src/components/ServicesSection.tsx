@@ -13,7 +13,7 @@ export default function ServicesSection() {
 
   return (
     <section id="services" className="relative overflow-hidden bg-[#0C0C0C] py-24 md:py-36">
-      <DecorLayer items={s.decor} />
+      <DecorLayer items={s.decor} area="services" />
       <div className="relative mx-auto max-w-7xl px-5 md:px-10">
         <div className="mb-14 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
