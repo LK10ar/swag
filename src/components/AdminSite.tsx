@@ -14,6 +14,7 @@ import { FONTS, loadFont } from '@/lib/fonts';
 import { ICON_NAMES } from '@/lib/icons';
 import { LANGS, translate, type LangCode } from '@/lib/i18n';
 import { collectTexts, getPath, setPath, type TextField } from '@/lib/translatable';
+import { looksUntranslated, translateLocal, translateRobust } from '@/lib/translateClient';
 import type { Decor, DecorShape, ServiceItem } from '@/lib/siteTypes';
 import DecorLayer from './DecorLayer';
 import HeroTitleText from './HeroTitleText';
@@ -775,9 +776,12 @@ function LangPanel() {
   const { s, set, onError } = useForm();
   const def = s.i18n.defaultLang;
   const others = LANGS.filter((l) => l.code !== def);
-  const [edit, setEdit] = useState<LangCode>(() => (s.i18n.enabled.find((c) => c !== def) as LangCode) ?? others[0].code);
+  const [editRaw, setEdit] = useState<LangCode>(() => (s.i18n.enabled.find((c) => c !== def) as LangCode) ?? others[0].code);
+  // si la langue principale change, la langue en cours d'édition doit rester une autre langue
+  const edit: LangCode = others.some((l) => l.code === editRaw) ? editRaw : others[0].code;
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState('');
+  const [diag, setDiag] = useState<string[]>([]);
 
   const enabled = new Set<LangCode>([def, ...s.i18n.enabled]);
   const toggle = (code: LangCode, on: boolean) => {
@@ -792,31 +796,66 @@ function LangPanel() {
   const src = (lang: LangCode, path: string[]) => String(getPath(s.i18n.sources?.[lang], path) ?? '');
   const missing = (lang: LangCode, f: TextField) => !tr(lang, f.path).trim();
   const stale = (lang: LangCode, f: TextField) => !missing(lang, f) && !!src(lang, f.path) && src(lang, f.path) !== f.value;
-  const todoCount = (lang: LangCode) => fields.filter((f) => missing(lang, f) || stale(lang, f)).length;
+  const same = (lang: LangCode, f: TextField) => !missing(lang, f) && looksUntranslated(f.value, tr(lang, f.path));
+  const todoCount = (lang: LangCode) => fields.filter((f) => missing(lang, f) || stale(lang, f) || same(lang, f)).length;
 
   async function auto(langs: LangCode[], all: boolean) {
     setBusy(true);
     setNote('');
     try {
+      let failed = 0;
+      let reason = '';
       for (const lang of langs) {
-        const todo = fields.filter((f) => all || missing(lang, f) || stale(lang, f));
+        const todo = fields.filter((f) => all || missing(lang, f) || stale(lang, f) || same(lang, f));
         for (let i = 0; i < todo.length; i += 15) {
           const batch = todo.slice(i, i + 15);
           setNote(`Traduction en ${lang.toUpperCase()}… ${Math.min(i + 15, todo.length)}/${todo.length}`);
-          // "auto" : la langue d'origine de chaque texte est détectée (utile si tes textes sont mélangés)
-          const { texts } = await translateTexts('auto', lang, batch.map((b) => b.value));
+          const { out, error } = await translateRobust(batch.map((b) => b.value), lang);
           batch.forEach((b, k) => {
-            set(`i18n.translations.${lang}.${b.path.join('.')}`, texts[k]);
-            set(`i18n.sources.${lang}.${b.path.join('.')}`, b.value);
+            const o = out[k];
+            if (o) {
+              set(`i18n.translations.${lang}.${b.path.join('.')}`, o);
+              set(`i18n.sources.${lang}.${b.path.join('.')}`, b.value);
+            } else failed++;
           });
+          if (error) reason = error;
         }
       }
-      setNote('Traduction terminée. Relis les textes, corrige si besoin, puis clique sur « Enregistrer les modifications ».');
+      setNote(
+        failed
+          ? `${failed} texte(s) n'ont pas pu être traduits. ${reason} — clique sur « Tester la traduction » pour voir pourquoi.`
+          : 'Traduction terminée. Relis les textes, corrige si besoin, puis clique sur « Enregistrer les modifications ».',
+      );
     } catch (e) {
       onError(e);
     } finally {
       setBusy(false);
     }
+  }
+
+  async function test() {
+    setBusy(true);
+    setDiag(['Test en cours…']);
+    const sample = 'Je fige le chaos en images qui frappent plus fort que le riff.';
+    const lines: string[] = [];
+    try {
+      const r = await translateTexts('auto', edit, [sample]);
+      const used = Object.entries(r.engines ?? {})
+        .map(([k, v]) => `${k} ×${v}`)
+        .join(', ');
+      lines.push(`Serveur : OK → « ${r.texts[0]} » (moteur : ${used || 'inconnu'})`);
+      if (r.errors?.length) lines.push(`   Moteurs en échec (un autre a pris le relais) : ${r.errors.join(' · ')}`);
+      if (looksUntranslated(sample, r.texts[0])) lines.push('   ⚠ Le texte est revenu inchangé : le serveur ne traduit pas vraiment.');
+    } catch (e) {
+      lines.push(`Serveur : ÉCHEC → ${e instanceof Error ? e.message : String(e)}`);
+    }
+    try {
+      lines.push(`Navigateur (Google) : OK → « ${await translateLocal(sample + ' ', edit)} »`);
+    } catch (e) {
+      lines.push(`Navigateur (Google) : ÉCHEC → ${e instanceof Error ? e.message : String(e)}`);
+    }
+    setDiag(lines);
+    setBusy(false);
   }
 
   const activeOthers = others.filter((l) => enabled.has(l.code)).map((l) => l.code);
@@ -847,16 +886,26 @@ function LangPanel() {
         </div>
         <p className="text-xs text-white/40">
           Les textes fixes du site (menu, formulaire, boutons, galerie, pied de page) sont déjà traduits. Tes propres textes (accueil, à propos, services, contact…)
-          se traduisent ci-dessous. Seule la page « Mentions légales » reste en français.
+          sont traduits automatiquement quand tu enregistres. Seule la page « Mentions légales » reste en français.
         </p>
-        {activeOthers.length > 0 && (
-          <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2">
+          {activeOthers.length > 0 && (
             <button type="button" className={BTN_PRIMARY} disabled={busy} onClick={() => auto(activeOthers, false)}>
               <Wand2 size={16} /> Tout traduire dans toutes les langues activées
             </button>
-          </div>
-        )}
+          )}
+          <button type="button" className={BTN} disabled={busy} onClick={test}>
+            Tester la traduction ({edit.toUpperCase()})
+          </button>
+        </div>
         {note && <p className="text-sm text-neon-green">{note}</p>}
+        {diag.length > 0 && (
+          <pre className="whitespace-pre-wrap rounded-lg border border-white/10 bg-black/40 p-3 text-xs leading-relaxed text-white/80">{diag.join('\n')}</pre>
+        )}
+        <p className="text-xs text-white/40">
+          Le serveur essaie DeepL (si tu as ajouté DEEPL_API_KEY sur Render), puis Google, puis MyMemory. Si le serveur échoue, le navigateur traduit
+          lui-même avec Google. Et si un texte n'a vraiment aucune traduction, le navigateur du visiteur le traduit à la volée.
+        </p>
       </Section>
 
       <Section title="Vérifier et corriger les traductions" hint="Quand tu modifies un texte, sa traduction est marquée « à retraduire ». Une traduction que tu corriges à la main est considérée comme à jour.">
@@ -890,6 +939,7 @@ function LangPanel() {
                 <p className="text-xs font-medium uppercase tracking-wider text-white/40">{f.label}</p>
                 {missing(edit, f) && <span className="rounded-full bg-orange-500/20 px-2 py-0.5 text-[11px] text-orange-300">non traduit</span>}
                 {stale(edit, f) && <span className="rounded-full bg-yellow-500/20 px-2 py-0.5 text-[11px] text-yellow-300">à retraduire</span>}
+                {same(edit, f) && <span className="rounded-full bg-red-500/20 px-2 py-0.5 text-[11px] text-red-300">identique au texte d'origine</span>}
               </div>
               <p className="mt-1 line-clamp-2 text-sm text-white/50">{f.value}</p>
               <textarea
@@ -910,39 +960,43 @@ function LangPanel() {
   );
 }
 
-/** Traduit (dans toutes les langues activées) les textes sans traduction ou modifiés depuis la dernière traduction. */
-async function syncTranslations(cur: SiteSettings, progress: (m: string) => void): Promise<{ next: SiteSettings; failed: boolean }> {
+/** Traduit (dans toutes les langues activées) les textes sans traduction, modifiés ou rendus à l'identique. */
+async function syncTranslations(
+  cur: SiteSettings,
+  progress: (m: string) => void,
+): Promise<{ next: SiteSettings; failed: number; reason: string }> {
   const next = structuredClone(cur);
   const set = (path: string, v: unknown) => setPath(next as unknown as Record<string, unknown>, path.split('.'), v);
   const def = next.i18n.defaultLang;
   const langs = next.i18n.enabled.filter((l) => l !== def);
   const fields = collectTexts(next);
-  let failed = false;
+  let failed = 0;
+  let reason = '';
 
   for (const lang of langs) {
     const todo: TextField[] = [];
     for (const f of fields) {
       const tr = String(getPath(next.i18n.translations?.[lang], f.path) ?? '').trim();
       const src = String(getPath(next.i18n.sources?.[lang], f.path) ?? '');
-      if (!tr) todo.push(f);
+      if (!tr || looksUntranslated(f.value, tr)) todo.push(f);
       else if (!src) set(`i18n.sources.${lang}.${f.path.join('.')}`, f.value); // ancienne traduction : on la garde telle quelle
       else if (src !== f.value) todo.push(f);
     }
-    for (let i = 0; i < todo.length && !failed; i += 15) {
+    for (let i = 0; i < todo.length; i += 15) {
       const batch = todo.slice(i, i + 15);
       progress(`Traduction en ${lang.toUpperCase()}… ${Math.min(i + 15, todo.length)}/${todo.length}`);
-      try {
-        const { texts } = await translateTexts('auto', lang, batch.map((b) => b.value));
-        batch.forEach((b, k) => {
-          set(`i18n.translations.${lang}.${b.path.join('.')}`, texts[k]);
+      const { out, error } = await translateRobust(batch.map((b) => b.value), lang);
+      batch.forEach((b, k) => {
+        const o = out[k];
+        if (o) {
+          set(`i18n.translations.${lang}.${b.path.join('.')}`, o);
           set(`i18n.sources.${lang}.${b.path.join('.')}`, b.value);
-        });
-      } catch {
-        failed = true;
-      }
+        } else failed++;
+      });
+      if (error) reason = error;
     }
   }
-  return { next, failed };
+  return { next, failed, reason };
 }
 
 /* ------------------------------ Page « Site » ------------------------------ */
@@ -994,12 +1048,12 @@ export default function AdminSite({ onError }: { onError: OnError }) {
     setSaving(true);
     setNote('');
     try {
-      const { next, failed } = await syncTranslations(s, setNote);
+      const { next, failed, reason } = await syncTranslations(s, setNote);
       setS(mergeSettings(await saveSettings(next)));
       setSaved(true);
       setNote(
         failed
-          ? 'Enregistré, mais la traduction automatique a été interrompue (limite du service ?). Réessaie plus tard depuis l’onglet Langues.'
+          ? `Enregistré, mais ${failed} texte(s) n'ont pas pu être traduits. ${reason} Va dans l'onglet Langues → « Tester la traduction ».`
           : '',
       );
     } catch (e) {
