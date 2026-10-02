@@ -4,6 +4,8 @@ import type { Decor, SiteSettings } from './siteTypes';
 import { PHOTOS } from './photos';
 import { LANGS, translate, type LangCode } from './i18n';
 import { loadFont } from './fonts';
+import { collectTexts, getPath, setPath } from './translatable';
+import { cachedTranslation, looksUntranslated, translateLocal } from './translateClient';
 
 const decor = (id: string, color: string, size: number, x: number, y: number): Decor => ({
   id,
@@ -164,6 +166,53 @@ export function deepMerge<T>(base: T, over: unknown, opts: MergeOpts = {}): T {
   return over as T;
 }
 
+/* Anciens textes par défaut (en anglais) : s'ils n'ont jamais été modifiés, ils passent aux nouveaux textes français. */
+const LEGACY_EN: Record<string, string> = {
+  'hero.kicker': 'Rock · Hard Rock · Metal Photography',
+  'hero.tagline': '*Raw* energy. ~Sweat~. ^Distortion^.\nI freeze the chaos into frames that hit harder than the riff.',
+  'hero.buttonLabel': 'Start a project',
+  'about.heading': "I don't shoot *portraits*.\nI capture ~sonic violence~ in frames.",
+  'about.paragraph':
+    "Twelve years in photo pits across Europe and Japan. From basement hardcore gigs to stadium metal festivals — I live for the three seconds between the riff and the chaos. My camera doesn't flinch when the mosh pit erupts. It leans in.",
+  'about.touring': 'Currently touring with: DEADLOCK · ASHFALL · The Vulture Cult',
+  'about.stats.0.label': 'Shows Shot',
+  'about.stats.1.label': 'Years In Pit',
+  'about.stats.2.label': 'Bands Covered',
+  'about.stats.3.label': 'Countries',
+  'services.title': 'What I ^deliver^',
+  'services.note': 'Every package includes full editing, online gallery, and commercial usage rights. No hidden fees.',
+  'services.items.0.title': 'LIVE SHOW COVERAGE',
+  'services.items.0.description': 'Full concert coverage from soundcheck to last encore. 200+ edited shots delivered in 48h.',
+  'services.items.0.price': 'From €450',
+  'services.items.1.title': 'ALBUM & PRESS KITS',
+  'services.items.1.description': 'Studio and location shoots for album covers, press releases, and promo campaigns.',
+  'services.items.1.price': 'From €800',
+  'services.items.2.title': 'MUSIC VIDEOS',
+  'services.items.2.description': 'Cinematic live sessions, lyric videos, and behind-the-scenes tour documentaries.',
+  'services.items.2.price': 'From €2,500',
+  'services.items.3.title': 'FESTIVAL COVERAGE',
+  'services.items.3.description': 'Multi-day festival documentation — stages, crowds, backstage, and artist portraits.',
+  'services.items.3.price': 'Custom',
+  'marquee.label': 'Live · Loud · Unfiltered',
+  'contact.intro':
+    "Booking a show, planning an album cover, or need a full tour documented? I'm available worldwide — just reach out.",
+  'contact.title': "Let's make *something* ~loud~.",
+  'footer.tagline': 'Rock & Hard Rock Photography',
+};
+
+function migrateLegacy(s: SiteSettings): SiteSettings {
+  if (s.i18n.defaultLang !== 'fr') return s;
+  let out: SiteSettings | null = null;
+  for (const [key, old] of Object.entries(LEGACY_EN)) {
+    const path = key.split('.');
+    if (getPath(s, path) === old) {
+      out ??= structuredClone(s);
+      setPath(out as unknown as Record<string, unknown>, path, getPath(DEFAULT_SETTINGS, path));
+    }
+  }
+  return out ?? s;
+}
+
 /** Ce qui est enregistré remplace les valeurs par défaut ; ce qui n'existe pas encore garde la valeur par défaut. */
 export function mergeSettings(saved?: unknown): SiteSettings {
   const s = deepMerge(DEFAULT_SETTINGS, saved);
@@ -174,7 +223,7 @@ export function mergeSettings(saved?: unknown): SiteSettings {
   if (!s.hero.title.text.trim()) s.hero = { ...s.hero, title: { ...s.hero.title, text: d.hero.title.text } };
   if (!s.about.heading) s.about = { ...s.about, heading: d.about.heading };
   if (!s.theme.font) s.theme = { ...s.theme, font: d.theme.font };
-  return s;
+  return migrateLegacy(s);
 }
 
 const enabledLangs = (s: SiteSettings): LangCode[] => {
@@ -283,10 +332,55 @@ export function SettingsProvider({ children, preview = false }: { children: Reac
     return langs.includes(browser) ? browser : base.i18n.defaultLang;
   }, [preview, chosen, langs, base.i18n.defaultLang]);
 
-  const settings = useMemo(() => {
+  const translated = useMemo(() => {
     if (lang === base.i18n.defaultLang) return base;
     return deepMerge(base, base.i18n.translations?.[lang], { byIndex: true, skipEmpty: true });
   }, [base, lang]);
+
+  // Filet de sécurité : un texte sans vraie traduction est traduit par le navigateur du visiteur (puis gardé en mémoire)
+  const [liveTick, setLiveTick] = useState(0);
+  const missing = useMemo(() => {
+    if (preview || lang === base.i18n.defaultLang) return [];
+    return collectTexts(base).filter((f) => looksUntranslated(f.value, String(getPath(translated, f.path) ?? '')));
+  }, [preview, lang, base, translated]);
+
+  useEffect(() => {
+    if (missing.length === 0) return;
+    let cancelled = false;
+    (async () => {
+      let n = 0;
+      for (const f of missing) {
+        if (cancelled) return;
+        if (cachedTranslation(lang, f.value)) continue;
+        try {
+          await translateLocal(f.value, lang);
+          if (++n % 4 === 0 && !cancelled) setLiveTick((x) => x + 1);
+        } catch {
+          return; // service injoignable : on garde le texte d'origine
+        }
+      }
+      if (!cancelled && n > 0) setLiveTick((x) => x + 1);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [missing, lang]);
+
+  const settings = useMemo(() => {
+    if (missing.length === 0) return translated;
+    const live: Record<string, unknown> = {};
+    let any = false;
+    for (const f of missing) {
+      const hit = cachedTranslation(lang, f.value);
+      if (hit) {
+        setPath(live, f.path, hit);
+        any = true;
+      }
+    }
+    return any ? deepMerge(translated, live, { byIndex: true, skipEmpty: true }) : translated;
+    // liveTick : relance le calcul quand de nouvelles traductions arrivent
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [translated, missing, lang, liveTick]);
 
   const setLang = useCallback((l: LangCode) => {
     setChosen(l);

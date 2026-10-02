@@ -93,7 +93,7 @@ export const saveSettings = (settings: SiteSettings) =>
   request<SiteSettings>('/api/settings', json('PUT', settings), true);
 
 export const translateTexts = (from: string, to: string, texts: string[]) =>
-  request<{ texts: string[] }>('/api/translate', json('POST', { from, to, texts }), true);
+  request<{ texts: string[]; engines?: Record<string, number>; errors?: string[] }>('/api/translate', json('POST', { from, to, texts }), true);
 
 // --- Contact ---
 export const sendContact = (data: { name: string; email: string; message: string; website?: string }) =>
